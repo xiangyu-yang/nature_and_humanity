@@ -56,6 +56,43 @@ export function BirthPage() {
     else navigate('/');
   };
 
+  const handleSave = async () => {
+    setSubmitting(true);
+    setError('');
+    try {
+      let user;
+      if (existingUser) {
+        user = await api.updateUser(existingUser.id, {
+          name: name.trim(),
+          gender,
+          birthYear: year,
+          birthMonth: month,
+          birthDay: day,
+          birthHour: hour,
+          birthPlace: place,
+          isLunar,
+        });
+      } else {
+        user = await api.createUser({
+          name: name.trim(),
+          gender,
+          birthYear: year,
+          birthMonth: month,
+          birthDay: day,
+          birthHour: hour,
+          birthPlace: place,
+          isLunar,
+        });
+      }
+      setUser(user);
+      setError('保存成功');
+    } catch (e: any) {
+      setError(e.message || '保存失败');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     setError('');
@@ -151,7 +188,11 @@ export function BirthPage() {
                 ))}
               </div>
             </div>
-            {error && <div className="text-sm text-cinnabar-500">{error}</div>}
+            {error && (
+            <div className={`text-sm ${error === '保存成功' ? 'text-emerald-600' : 'text-cinnabar-500'}`}>
+              {error}
+            </div>
+          )}
           </div>
         )}
 
@@ -257,7 +298,11 @@ export function BirthPage() {
               <Row label="历法" value={isLunar ? '农历' : '阳历'} />
               <Row label="地点" value={place} />
             </div>
-            {error && <div className="text-sm text-cinnabar-500">{error}</div>}
+            {error && (
+            <div className={`text-sm ${error === '保存成功' ? 'text-emerald-600' : 'text-cinnabar-500'}`}>
+              {error}
+            </div>
+          )}
           </div>
         )}
 
@@ -275,14 +320,23 @@ export function BirthPage() {
               <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="btn-primary flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {submitting ? '保存中...' : '开启命理之旅'}
-              <Check className="w-4 h-4" />
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleSave}
+                disabled={submitting}
+                className="px-5 py-2.5 border-2 border-teal-500 text-teal-600 hover:bg-teal-50 rounded-xl font-medium flex items-center gap-1.5 disabled:opacity-50 transition-all"
+              >
+                {submitting ? '保存中...' : '保存信息'}
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="btn-primary flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {submitting ? '保存中...' : '开启命理之旅'}
+                <Check className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -14,9 +14,9 @@ const reportSchema = z.object({
     day: z.number().int(),
     hour: z.number().int(),
     gender: z.enum(['male', 'female']),
-    isLunar: z.boolean().optional(),
+    isLunar: z.union([z.boolean(), z.number().int().min(0).max(1)]).optional(),
   }),
-  constitution: z.enum(['平和质', '气虚质', '阳虚质', '阴虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质']).nullable(),
+  constitution: z.enum(['平和质', '气虚质', '阳虚质', '阴虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质']).optional(),
 });
 
 reportRouter.post('/', (req, res) => {
@@ -25,8 +25,12 @@ reportRouter.post('/', (req, res) => {
     return res.status(400).json({ code: 400, message: '参数错误' });
   }
   try {
-    const bazi = calcBazi(parse.data.birth);
-    const ziwei = calcZiwei(parse.data.birth);
+    const birthData = {
+      ...parse.data.birth,
+      isLunar: parse.data.birth.isLunar ? true : false,
+    };
+    const bazi = calcBazi(birthData);
+    const ziwei = calcZiwei(birthData);
     const cross = crossAnalysis(bazi, ziwei, parse.data.constitution);
     const balance = fiveElementsBalance(bazi);
     const health = healthRiskPrediction(bazi, parse.data.constitution);

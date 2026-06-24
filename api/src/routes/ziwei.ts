@@ -10,7 +10,7 @@ const ziweiSchema = z.object({
   day: z.number().int().min(1).max(31),
   hour: z.number().int().min(0).max(23),
   gender: z.enum(['male', 'female']),
-  isLunar: z.boolean().optional(),
+  isLunar: z.union([z.boolean(), z.number().int().min(0).max(1)]).optional(),
 });
 
 ziweiRouter.post('/', (req, res) => {
@@ -19,7 +19,11 @@ ziweiRouter.post('/', (req, res) => {
     return res.status(400).json({ code: 400, message: '参数错误' });
   }
   try {
-    const result = calcZiwei(parse.data);
+    const data = {
+      ...parse.data,
+      isLunar: parse.data.isLunar ? true : false,
+    };
+    const result = calcZiwei(data);
     res.json({ code: 0, data: result });
   } catch (e: any) {
     res.status(500).json({ code: 500, message: e.message || '紫微计算失败' });

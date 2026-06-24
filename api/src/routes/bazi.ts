@@ -12,7 +12,7 @@ const baziSchema = z.object({
   day: z.number().int().min(1).max(31),
   hour: z.number().int().min(0).max(23),
   gender: z.enum(['male', 'female']),
-  isLunar: z.boolean().optional(),
+  isLunar: z.union([z.boolean(), z.number().int().min(0).max(1)]).optional(),
 });
 
 baziRouter.post('/', async (req, res) => {
@@ -21,7 +21,11 @@ baziRouter.post('/', async (req, res) => {
     return res.status(400).json({ code: 400, message: '参数错误', errors: parse.error.errors });
   }
   try {
-    const result = calcBazi(parse.data);
+    const data = {
+      ...parse.data,
+      isLunar: parse.data.isLunar ? true : false,
+    };
+    const result = calcBazi(data);
     
     if (parse.data.userId) {
       await BaziRecordDAO.create({
