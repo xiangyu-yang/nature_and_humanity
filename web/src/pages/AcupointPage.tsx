@@ -15,12 +15,18 @@ export function AcupointPage() {
   const [activeCat, setActiveCat] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Acupoint | null>(null);
 
   useEffect(() => {
     api.getAcupoints().then(d => {
+      console.log('Acupoints data:', d);
       setData(d.data);
       setCategories(d.categories);
+      setLoading(false);
+    }).catch(err => {
+      console.error('Failed to fetch acupoints:', err);
+      setError('加载穴位数据失败，请刷新重试');
       setLoading(false);
     });
   }, []);
@@ -29,17 +35,26 @@ export function AcupointPage() {
     if (activeCat !== 'all' && a.category !== activeCat) return false;
     if (search) {
       const kw = search.toLowerCase();
-      return a.name.includes(search) ||
+      return a.name.toLowerCase().includes(kw) ||
         a.pinyin.toLowerCase().includes(kw) ||
         a.code.toLowerCase().includes(kw) ||
-        a.effect.some(e => e.includes(search)) ||
-        a.indications.some(i => i.includes(search));
+        a.effect.some(e => e.toLowerCase().includes(kw)) ||
+        a.indications.some(i => i.toLowerCase().includes(kw));
     }
     return true;
   });
 
   if (loading) {
     return <div className="grid place-items-center min-h-[400px] text-ink-400 text-sm">加载中...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20">
+        <AlertCircle className="w-12 h-12 text-cinnabar-500 mx-auto mb-3" />
+        <p className="text-ink-500">{error}</p>
+      </div>
+    );
   }
 
   return (

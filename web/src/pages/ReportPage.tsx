@@ -30,11 +30,11 @@ export function ReportPage() {
         day: user.birthDay,
         hour: user.birthHour,
         gender: user.gender,
-        isLunar: user.isLunar,
+        isLunar: Boolean(user.isLunar),
       },
       constitution: stored?.primaryType || null,
     }).then(d => {
-      setReport(d);
+      setReport(d.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user, stored, navigate]);

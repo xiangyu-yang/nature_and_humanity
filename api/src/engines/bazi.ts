@@ -175,7 +175,7 @@ function getDayPillar(year: number, month: number, day: number): Pillar {
 }
 
 function getHourPillar(dayGan: string, hour: number): Pillar {
-  const zhi = HOUR_ZHI[hour];
+  const zhi = HOUR_ZHI[hour] || '午';
   // 五鼠遁：甲己还加甲
   const startGanMap: Record<string, number> = {
     甲: 0, 己: 0, // 甲子
@@ -184,7 +184,7 @@ function getHourPillar(dayGan: string, hour: number): Pillar {
     丁: 6, 壬: 6, // 庚子
     戊: 8, 癸: 8, // 壬子
   };
-  const startGan = startGanMap[dayGan];
+  const startGan = startGanMap[dayGan] ?? 0;
   const zhiIdx = DIZHI.indexOf(zhi as any);
   const ganIdx = (startGan + zhiIdx) % 10;
   return buildPillar(TIANGAN[ganIdx], zhi);

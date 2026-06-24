@@ -31,7 +31,7 @@ export function WellnessPage() {
       constitution: constitution?.primaryType,
       dayMasterWuxing: undefined,
     }).then(d => {
-      setData(d);
+      setData(d.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [constitution?.primaryType]);

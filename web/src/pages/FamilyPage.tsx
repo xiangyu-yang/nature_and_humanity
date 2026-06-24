@@ -23,7 +23,7 @@ export function FamilyPage() {
   const loadMembers = () => {
     if (!user) return;
     api.getFamily(user.id).then(d => {
-      setMembers(d);
+      setMembers(d.data);
       setLoading(false);
     });
   };

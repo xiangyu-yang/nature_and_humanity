@@ -23,9 +23,9 @@ export function ZiweiPage() {
       day: user.birthDay,
       hour: user.birthHour,
       gender: user.gender,
-      isLunar: user.isLunar,
+      isLunar: Boolean(user.isLunar),
     }).then(d => {
-      setZiwei(d);
+      setZiwei(d.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user, navigate]);

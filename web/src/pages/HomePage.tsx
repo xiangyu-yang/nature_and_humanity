@@ -35,7 +35,7 @@ export function HomePage() {
 
   useEffect(() => {
     api.getTodayFortune(user?.id).then(d => {
-      setFortune(d);
+      setFortune(d.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user?.id]);

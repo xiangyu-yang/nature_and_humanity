@@ -10,7 +10,38 @@ profileRouter.get('/:userId', async (req, res) => {
   const { password, ...userWithoutPassword } = user;
   
   const bazi = await BaziRecordDAO.findByUserId(req.params.userId);
-  const constitution = await ConstitutionResultDAO.findByUserId(req.params.userId);
+  const constitutionRecord = await ConstitutionResultDAO.findByUserId(req.params.userId);
+  
+  let constitution = null;
+  if (constitutionRecord) {
+    try {
+      const scores = JSON.parse(constitutionRecord.scores);
+      constitution = {
+        id: constitutionRecord.id,
+        userId: constitutionRecord.userId,
+        primaryType: constitutionRecord.constitution,
+        secondaryType: null,
+        scores,
+        rawScores: scores,
+        isPinghe: constitutionRecord.constitution === '平和质',
+        ranking: Object.entries(scores).map(([type, score]) => ({ type, score })).sort((a, b) => b.score - a.score),
+        createdAt: constitutionRecord.createdAt,
+      };
+    } catch {
+      constitution = {
+        id: constitutionRecord.id,
+        userId: constitutionRecord.userId,
+        primaryType: constitutionRecord.constitution,
+        secondaryType: null,
+        scores: {},
+        rawScores: {},
+        isPinghe: constitutionRecord.constitution === '平和质',
+        ranking: [],
+        createdAt: constitutionRecord.createdAt,
+      };
+    }
+  }
+  
   const family = await FamilyMemberDAO.findByUserId(req.params.userId);
   const favorites = await FavoriteDAO.findByUserId(req.params.userId);
   

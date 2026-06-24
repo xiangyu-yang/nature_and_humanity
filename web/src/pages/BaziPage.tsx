@@ -17,15 +17,15 @@ export function BaziPage() {
       navigate('/birth');
       return;
     }
-    api.calcBazi({
+    api.calcBazi(user.id, {
       year: user.birthYear,
       month: user.birthMonth,
       day: user.birthDay,
       hour: user.birthHour,
       gender: user.gender,
-      isLunar: user.isLunar,
+      isLunar: Boolean(user.isLunar),
     }).then(d => {
-      setBazi(d);
+      setBazi(d.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user, navigate]);

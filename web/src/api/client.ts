@@ -19,72 +19,72 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!res.ok || (data && data.code && data.code !== 0)) {
     throw new ApiError(data?.code || res.status, data?.message || res.statusText);
   }
-  return data?.data as T;
+  return data as T;
 }
 
 export const api = {
   // 健康
-  health: () => request<{ status: string; service: string; time: string; version: string }>('/health'),
+  health: () => request<{ code: number; data: { status: string; service: string; time: string; version: string } }>('/health'),
 
   // 用户
-  createUser: (data: UserInput) => request<User>('/users', { method: 'POST', body: JSON.stringify(data) }),
-  getUser: (id: string) => request<User>(`/users/${id}`),
-  updateUser: (id: string, data: Partial<UserInput>) => request<User>(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  createUser: (data: UserInput) => request<{ code: number; data: User }>('/users', { method: 'POST', body: JSON.stringify(data) }),
+  getUser: (id: string) => request<{ code: number; data: User }>(`/users/${id}`),
+  updateUser: (id: string, data: Partial<UserInput>) => request<{ code: number; data: User }>(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // 八字
-  calcBazi: (data: BaziInput) => request<BaziResult>('/bazi', { method: 'POST', body: JSON.stringify(data) }),
+  calcBazi: (userId: string, data: BaziInput) => request<{ code: number; data: BaziResult }>('/bazi', { method: 'POST', body: JSON.stringify({ userId, ...data }) }),
 
   // 紫微
-  calcZiwei: (data: BaziInput) => request<ZiweiResult>('/ziwei', { method: 'POST', body: JSON.stringify(data) }),
+  calcZiwei: (data: BaziInput) => request<{ code: number; data: ZiweiResult }>('/ziwei', { method: 'POST', body: JSON.stringify(data) }),
 
   // 体质
-  getConstitutionQuestions: () => request<Question[]>('/constitution/questions'),
-  evaluateConstitution: (answers: Record<string, number>) =>
-    request<ConstitutionResult>('/constitution/evaluate', { method: 'POST', body: JSON.stringify({ answers }) }),
-  getConstitutionTypes: () => request<ConstitutionTypeInfo[]>('/constitution/types'),
+  getConstitutionQuestions: () => request<{ code: number; data: Question[] }>('/constitution/questions'),
+  evaluateConstitution: (userId: string, answers: Record<string, number>) =>
+    request<{ code: number; data: ConstitutionResult }>('/constitution/evaluate', { method: 'POST', body: JSON.stringify({ userId, answers }) }),
+  getConstitutionTypes: () => request<{ code: number; data: ConstitutionTypeInfo[] }>('/constitution/types'),
 
   // 报告
   generateReport: (data: { birth: BaziInput; constitution: string | null }) =>
-    request<ReportResult>('/report', { method: 'POST', body: JSON.stringify(data) }),
+    request<{ code: number; data: ReportResult }>('/report', { method: 'POST', body: JSON.stringify(data) }),
 
   // 运势
   getTodayFortune: (userId?: string) => {
     const qs = userId ? `?userId=${encodeURIComponent(userId)}` : '';
-    return request<DailyFortune>(`/fortune/today${qs}`);
+    return request<{ code: number; data: DailyFortune }>(`/fortune/today${qs}`);
   },
 
   // 食疗
   getFoods: (params?: { search?: string; season?: string; constitution?: string }) => {
     const qs = params ? '?' + new URLSearchParams(params as any).toString() : '';
-    return request<FoodItem[]>(`/food${qs}`);
+    return request<{ code: number; data: FoodItem[] }>(`/food${qs}`);
   },
   getFoodRecommend: (constitution?: string) => {
     const qs = constitution ? `?constitution=${encodeURIComponent(constitution)}` : '';
-    return request<{ seasonal: FoodItem[]; term: any } | FoodItem[]>(`/food/recommend${qs}`);
+    return request<{ code: number; data: { seasonal: FoodItem[]; term: any } | FoodItem[] }>(`/food/recommend${qs}`);
   },
 
   // 穴位
   getAcupoints: (params?: { category?: string; search?: string }) => {
     const qs = params ? '?' + new URLSearchParams(params as any).toString() : '';
-    return request<{ data: Acupoint[]; categories: Record<string, string> }>(`/acupoints${qs}`);
+    return request<{ code: number; data: Acupoint[]; categories: Record<string, string> }>(`/acupoints${qs}`);
   },
-  getAcupoint: (id: string) => request<Acupoint>(`/acupoints/${id}`),
+  getAcupoint: (id: string) => request<{ code: number; data: Acupoint }>(`/acupoints/${id}`),
 
   // 养生
   getWellness: (data: { constitution?: string; dayMasterWuxing?: string }) =>
-    request<WellnessResult>('/wellness', { method: 'POST', body: JSON.stringify(data) }),
+    request<{ code: number; data: WellnessResult }>('/wellness', { method: 'POST', body: JSON.stringify(data) }),
 
   // 家庭
-  getFamily: (userId: string) => request<FamilyMember[]>(`/family?userId=${userId}`),
+  getFamily: (userId: string) => request<{ code: number; data: FamilyMember[] }>(`/family?userId=${userId}`),
   addFamilyMember: (data: Omit<FamilyMember, 'id' | 'createdAt'>) =>
-    request<FamilyMember>('/family', { method: 'POST', body: JSON.stringify(data) }),
+    request<{ code: number; data: FamilyMember }>('/family', { method: 'POST', body: JSON.stringify(data) }),
   updateFamilyMember: (id: string, data: Partial<FamilyMember>) =>
-    request<FamilyMember>(`/family/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    request<{ code: number; data: FamilyMember }>(`/family/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteFamilyMember: (id: string) =>
-    request<{ success: boolean }>(`/family/${id}`, { method: 'DELETE' }),
+    request<{ code: number; data: { success: boolean } }>(`/family/${id}`, { method: 'DELETE' }),
 
   // 我的信息
-  getProfile: (userId: string) => request<ProfileData>(`/profile/${userId}`),
+  getProfile: (userId: string) => request<{ code: number; data: ProfileData }>(`/profile/${userId}`),
 };
 
 export const apiClient = api;
@@ -98,7 +98,7 @@ export interface UserInput {
   birthDay: number;
   birthHour: number;
   birthPlace?: string;
-  isLunar?: boolean;
+  isLunar?: boolean | number;
 }
 
 export interface User extends UserInput {

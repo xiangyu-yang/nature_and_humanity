@@ -15,8 +15,11 @@ export function FoodPage() {
 
   useEffect(() => {
     Promise.all([
-      api.getFoods().catch(() => []),
-      api.getFoodRecommend().then((d: any) => Array.isArray(d) ? { seasonal: d, term: null } : d),
+      api.getFoods().then(d => d.data).catch(() => []),
+      api.getFoodRecommend().then((d: any) => {
+        const data = d.data;
+        return Array.isArray(data) ? { seasonal: data, term: null } : data;
+      }),
     ]).then(([all, rec]) => {
       setFoods(all);
       setSeasonal(rec.seasonal || []);

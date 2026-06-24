@@ -37,7 +37,7 @@ export function BirthPage() {
   const [day, setDay] = useState(existingUser?.birthDay || 1);
   const [hour, setHour] = useState(existingUser?.birthHour ?? 12);
   const [place, setPlace] = useState(existingUser?.birthPlace || '北京');
-  const [isLunar, setIsLunar] = useState(existingUser?.isLunar || false);
+  const [isLunar, setIsLunar] = useState(Boolean(existingUser?.isLunar) || false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,7 +62,7 @@ export function BirthPage() {
     try {
       let user;
       if (existingUser) {
-        user = await api.updateUser(existingUser.id, {
+        user = (await api.updateUser(existingUser.id, {
           name: name.trim(),
           gender,
           birthYear: year,
@@ -71,9 +71,9 @@ export function BirthPage() {
           birthHour: hour,
           birthPlace: place,
           isLunar,
-        });
+        })).data;
       } else {
-        user = await api.createUser({
+        user = (await api.createUser({
           name: name.trim(),
           gender,
           birthYear: year,
@@ -82,7 +82,7 @@ export function BirthPage() {
           birthHour: hour,
           birthPlace: place,
           isLunar,
-        });
+        })).data;
       }
       setUser(user);
       setError('保存成功');
@@ -99,7 +99,7 @@ export function BirthPage() {
     try {
       let user;
       if (existingUser) {
-        user = await api.updateUser(existingUser.id, {
+        user = (await api.updateUser(existingUser.id, {
           name: name.trim(),
           gender,
           birthYear: year,
@@ -108,9 +108,9 @@ export function BirthPage() {
           birthHour: hour,
           birthPlace: place,
           isLunar,
-        });
+        })).data;
       } else {
-        user = await api.createUser({
+        user = (await api.createUser({
           name: name.trim(),
           gender,
           birthYear: year,
@@ -119,7 +119,7 @@ export function BirthPage() {
           birthHour: hour,
           birthPlace: place,
           isLunar,
-        });
+        })).data;
       }
       setUser(user);
       navigate('/bazi');

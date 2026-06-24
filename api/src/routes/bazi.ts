@@ -30,19 +30,19 @@ baziRouter.post('/', async (req, res) => {
     if (parse.data.userId) {
       await BaziRecordDAO.create({
         userId: parse.data.userId,
-        yearGan: result.year.gan,
-        yearZhi: result.year.zhi,
-        monthGan: result.month.gan,
-        monthZhi: result.month.zhi,
-        dayGan: result.day.gan,
-        dayZhi: result.day.zhi,
-        hourGan: result.hour.gan,
-        hourZhi: result.hour.zhi,
+        yearGan: result.yearPillar.gan,
+        yearZhi: result.yearPillar.zhi,
+        monthGan: result.monthPillar.gan,
+        monthZhi: result.monthPillar.zhi,
+        dayGan: result.dayPillar.gan,
+        dayZhi: result.dayPillar.zhi,
+        hourGan: result.hourPillar.gan,
+        hourZhi: result.hourPillar.zhi,
         dayMaster: result.dayMaster,
         dayMasterWuxing: result.dayMasterWuxing,
-        wuxing: JSON.stringify(result.wuxing),
+        wuxing: JSON.stringify(result.wuxingCount),
         shishen: JSON.stringify(result.shishen),
-        daYun: JSON.stringify(result.daYun),
+        daYun: JSON.stringify(result.dayun),
       });
     }
     

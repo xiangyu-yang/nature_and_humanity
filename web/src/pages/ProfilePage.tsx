@@ -18,7 +18,7 @@ export function ProfilePage() {
       return;
     }
     api.getProfile(user.id).then(d => {
-      setData(d);
+      setData(d.data);
       setLoading(false);
     });
   }, [user, navigate]);

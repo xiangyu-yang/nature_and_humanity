@@ -19,6 +19,7 @@ const CONSTITUTION_COLORS: Record<string, string> = {
 
 export function ConstitutionPage() {
   const navigate = useNavigate();
+  const user = useUserStore(s => s.user);
   const setConstitution = useUserStore(s => s.setConstitution);
   const stored = useUserStore(s => s.constitutionResult);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -31,8 +32,8 @@ export function ConstitutionPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    api.getConstitutionQuestions().then(setQuestions);
-    api.getConstitutionTypes().then(setTypes);
+    api.getConstitutionQuestions().then(d => setQuestions(d.data));
+    api.getConstitutionTypes().then(d => setTypes(d.data));
   }, []);
 
   const startTest = () => {
@@ -55,9 +56,11 @@ export function ConstitutionPage() {
   const submitTest = async (finalAnswers: Record<number, number>) => {
     setSubmitting(true);
     try {
-      const r = await api.evaluateConstitution(
+      const response = await api.evaluateConstitution(
+        user?.id || '',
         Object.fromEntries(Object.entries(finalAnswers).map(([k, v]) => [k, v]))
       );
+      const r = response.data;
       setResult(r);
       const primary = types.find(t => t.type === r.primaryType);
       setPrimaryInfo(primary || null);
