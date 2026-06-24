@@ -1,0 +1,51 @@
+{
+  "users": {
+    "VVh1axGMKZIW": {
+      "id": "VVh1axGMKZIW",
+      "username": "testuser4",
+      "password": "123456",
+      "name": "王五",
+      "gender": "male",
+      "birthYear": 1985,
+      "birthMonth": 3,
+      "birthDay": 10,
+      "birthHour": 12,
+      "birthPlace": null,
+      "isLunar": 0,
+      "createdAt": "2026-06-24T01:46:15.139Z"
+    },
+    "dAWdqex6xQiW": {
+      "id": "dAWdqex6xQiW",
+      "username": "testuser5",
+      "password": "123456",
+      "name": "赵六更新",
+      "gender": "female",
+      "birthYear": 1999,
+      "birthMonth": 7,
+      "birthDay": 20,
+      "birthHour": 10,
+      "birthPlace": null,
+      "isLunar": 0,
+      "createdAt": "2026-06-24T01:55:56.781Z",
+      "updatedAt": "2026-06-24T02:02:38.492Z"
+    },
+    "RicYNOzYO1zr": {
+      "id": "RicYNOzYO1zr",
+      "username": "michael",
+      "password": "George890808$",
+      "name": "杨翔宇",
+      "gender": "male",
+      "birthYear": 1989,
+      "birthMonth": 8,
+      "birthDay": 8,
+      "birthHour": 12,
+      "birthPlace": null,
+      "isLunar": 0,
+      "createdAt": "2026-06-24T01:56:44.122Z"
+    }
+  },
+  "baziRecords": {},
+  "constitutionResults": {},
+  "familyMembers": {},
+  "favorites": {}
+}

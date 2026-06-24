@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-ink: #2C2416;
+    --color-teal: #1A4D5C;
+    --color-amber: #D4A84B;
+    --color-cinnabar: #C8553D;
+    --color-rice: #F5F1E8;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    @apply bg-ink-50 text-ink-600 font-sans;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(212, 168, 75, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(26, 77, 92, 0.06) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(200, 85, 61, 0.04) 0%, transparent 60%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-ink-600;
+  }
+
+  ::selection {
+    @apply bg-amber-200/60 text-ink-600;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(245, 241, 232, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 168, 75, 0.18);
+  }
+
+  .card-paper {
+    @apply bg-white/80 backdrop-blur-md rounded-2xl shadow-ink border border-ink-100/50;
+  }
+
+  .card-paper-dark {
+    @apply bg-teal-700/90 text-ink-50 rounded-2xl shadow-ink-lg;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .ink-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-amber-300/50 to-transparent;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-br from-teal-500 to-teal-600 text-ink-50 rounded-xl font-medium shadow-ink hover:shadow-ink-lg hover:-translate-y-0.5 transition-all duration-300;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 border-2 border-teal-500 text-teal-600 rounded-xl font-medium hover:bg-teal-50 transition-all duration-300;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 text-ink-500 hover:text-teal-600 transition-colors;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full;
+  }
+
+  .chip-wuxing-木 { @apply bg-[#5A8E4A]/15 text-[#3D6B30] border border-[#5A8E4A]/30; }
+  .chip-wuxing-火 { @apply bg-[#C8553D]/15 text-[#8B3525] border border-[#C8553D]/30; }
+  .chip-wuxing-土 { @apply bg-[#D4A84B]/20 text-[#7A5C1F] border border-[#D4A84B]/40; }
+  .chip-wuxing-金 { @apply bg-[#C9B87A]/20 text-[#6B5C3E] border border-[#C9B87A]/40; }
+  .chip-wuxing-水 { @apply bg-[#3A6E7C]/15 text-[#1A4D5C] border border-[#3A6E7C]/30; }
+
+  .ornament-corner {
+    position: relative;
+  }
+  .ornament-corner::before,
+  .ornament-corner::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2px solid theme('colors.amber.400');
+    opacity: 0.4;
+  }
+  .ornament-corner::before {
+    top: -2px;
+    left: -2px;
+    border-right: none;
+    border-bottom: none;
+  }
+  .ornament-corner::after {
+    bottom: -2px;
+    right: -2px;
+    border-left: none;
+    border-top: none;
+  }
+
+  .bagua-spin {
+    animation: spin 60s linear infinite;
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-amber-300/40 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-amber-400/60;
+}

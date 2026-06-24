@@ -1,0 +1,18 @@
+{
+  "name": "nature-and-humanity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "五行中医智能体 - 融合八字、紫微、体质的健康管理平台",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"pnpm --filter @nah/api dev\" \"pnpm --filter @nah/web dev\"",
+    "dev:api": "pnpm --filter @nah/api dev",
+    "dev:web": "pnpm --filter @nah/web dev",
+    "build": "pnpm --filter @nah/api build && pnpm --filter @nah/web build",
+    "start": "pnpm --filter @nah/api start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "packageManager": "pnpm@10.11.0"
+}
