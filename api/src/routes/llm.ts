@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { LLMConfigDAO, UserDAO, BaziRecordDAO, ConstitutionResultDAO } from '../db/dao';
+import { getDailyInfo, getWeather } from '../utils/dailyAnalysis';
 
 export const llmRouter = Router();
 
@@ -14,6 +15,7 @@ const chatSchema = z.object({
   apiUrl: z.string().optional(),
   apiKey: z.string().optional(),
   model: z.string().optional(),
+  enableDeepThinking: z.boolean().optional(),
 });
 
 llmRouter.post('/chat', async (req, res) => {
@@ -23,37 +25,90 @@ llmRouter.post('/chat', async (req, res) => {
   }
 
   try {
-    const { userId, message, history = [], apiUrl, apiKey, model } = parse.data;
+    const { userId, message, history = [], apiUrl, apiKey, model, enableDeepThinking } = parse.data;
     
     let configApiUrl = apiUrl;
     let configApiKey = apiKey;
     let configModel = model;
     
     let userInfo = '';
-    if (userId) {
-      const savedConfig = await LLMConfigDAO.findByUserId(userId);
-      if (savedConfig) {
-        configApiUrl = savedConfig.apiUrl || configApiUrl;
-        configApiKey = savedConfig.apiKey || configApiKey;
-        configModel = savedConfig.model || configModel;
+      let userCity = '';
+      if (userId) {
+        const savedConfig = await LLMConfigDAO.findByUserId(userId);
+        if (savedConfig) {
+          configApiUrl = savedConfig.apiUrl || configApiUrl;
+          configApiKey = savedConfig.apiKey || configApiKey;
+          configModel = savedConfig.model || configModel;
+        }
+        
+        const profile = await loadUserProfile(userId);
+        userInfo = profile.userInfo;
+        userCity = profile.city;
       }
       
-      userInfo = await loadUserProfile(userId);
-    }
-    
-    const systemPrompt = buildSystemPrompt(userInfo);
+      const dailyInfo = getDailyInfo();
+      const weatherInfo = await getWeather(userCity || '北京');
+      
+      const systemPrompt = buildSystemPrompt(userInfo, dailyInfo, weatherInfo);
     
     if (configApiUrl && configModel) {
       try {
+        const isOllama = configApiUrl.includes('localhost:11434') || configApiKey === 'ollama';
+        const reasoningEnabled = enableDeepThinking !== undefined ? enableDeepThinking : true;
+        
         let fullUrl = configApiUrl;
-        if (!fullUrl.endsWith('/chat/completions')) {
-          if (fullUrl.endsWith('/v1')) {
-            fullUrl += '/chat/completions';
-          } else if (fullUrl.endsWith('/')) {
-            fullUrl += 'v1/chat/completions';
-          } else {
-            fullUrl += '/v1/chat/completions';
+        let requestBody: Record<string, any>;
+        let responseParser: 'openai' | 'ollama' = 'openai';
+        
+        if (isOllama) {
+          responseParser = 'ollama';
+          if (!fullUrl.endsWith('/api/chat')) {
+            if (fullUrl.endsWith('/v1')) {
+              fullUrl = fullUrl.replace(/\/v1$/, '/api/chat');
+            } else if (fullUrl.endsWith('/')) {
+              fullUrl += 'api/chat';
+            } else {
+              fullUrl += '/api/chat';
+            }
           }
+          
+          requestBody = {
+            model: configModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...history,
+              { role: 'user', content: message },
+            ],
+            stream: true,
+            think: reasoningEnabled,
+            options: {
+              num_ctx: 8192,
+              num_predict: 8192,
+            },
+          };
+        } else {
+          responseParser = 'openai';
+          if (!fullUrl.endsWith('/chat/completions')) {
+            if (fullUrl.endsWith('/v1')) {
+              fullUrl += '/chat/completions';
+            } else if (fullUrl.endsWith('/')) {
+              fullUrl += 'v1/chat/completions';
+            } else {
+              fullUrl += '/v1/chat/completions';
+            }
+          }
+          
+          requestBody = {
+            model: configModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...history,
+              { role: 'user', content: message },
+            ],
+            max_tokens: 8192,
+            temperature: 0.7,
+            stream: true,
+          };
         }
         
         const headers: Record<string, string> = {
@@ -64,29 +119,10 @@ llmRouter.post('/chat', async (req, res) => {
           headers['Authorization'] = `Bearer ${configApiKey}`;
         }
         
-        const messages = [
-          {
-            role: 'system',
-            content: systemPrompt,
-          },
-          ...history,
-          { role: 'user', content: message },
-        ];
-        
         const response = await fetch(fullUrl, {
           method: 'POST',
           headers,
-          body: JSON.stringify({
-            model: configModel,
-            messages,
-            max_tokens: 8192,
-            temperature: 0.7,
-            stream: true,
-            options: {
-              num_ctx: 8192,
-              reasoning: true,
-            },
-          }),
+          body: JSON.stringify(requestBody),
         });
         
         if (response.ok) {
@@ -104,34 +140,67 @@ llmRouter.post('/chat', async (req, res) => {
           const decoder = new TextDecoder();
           let buffer = '';
           
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            buffer += decoder.decode(value, { stream: true });
-            
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-            
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const dataStr = line.slice(6);
-                if (dataStr === '[DONE]') {
-                  res.write('data: [DONE]\n\n');
-                  res.end();
-                  return;
-                }
+          if (responseParser === 'ollama') {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+              
+              for (const line of lines) {
+                if (!line.trim()) continue;
                 try {
-                  const data = JSON.parse(dataStr);
-                  const content = data.choices?.[0]?.delta?.content || data.message?.content || '';
-                  const reasoning = data.choices?.[0]?.delta?.reasoning || data.message?.reasoning || '';
+                  const data = JSON.parse(line);
+                  const content = data.message?.content || '';
+                  const thinking = data.message?.thinking || '';
+                  
+                  if (thinking) {
+                    res.write(`data: ${JSON.stringify({ reasoning: thinking })}\n\n`);
+                  }
                   if (content) {
                     res.write(`data: ${JSON.stringify({ content })}\n\n`);
-                  } else if (reasoning) {
-                    res.write(`data: ${JSON.stringify({ reasoning })}\n\n`);
+                  }
+                  if (data.done) {
+                    res.write('data: [DONE]\n\n');
+                    res.end();
+                    return;
                   }
                 } catch {
                   continue;
+                }
+              }
+            }
+          } else {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+              
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const dataStr = line.slice(6);
+                  if (dataStr === '[DONE]') {
+                    res.write('data: [DONE]\n\n');
+                    res.end();
+                    return;
+                  }
+                  try {
+                    const data = JSON.parse(dataStr);
+                    const content = data.choices?.[0]?.delta?.content || data.message?.content || '';
+                    const reasoning = data.choices?.[0]?.delta?.reasoning || data.message?.reasoning || '';
+                    if (content) {
+                      res.write(`data: ${JSON.stringify({ content })}\n\n`);
+                    } else if (reasoning) {
+                      res.write(`data: ${JSON.stringify({ reasoning })}\n\n`);
+                    }
+                  } catch {
+                    continue;
+                  }
                 }
               }
             }
@@ -201,15 +270,41 @@ llmRouter.post('/test', async (req, res) => {
     
     if (apiUrl) {
       try {
+        const isOllama = apiUrl.includes('localhost:11434') || apiKey === 'ollama';
         let fullUrl = apiUrl;
-        if (!fullUrl.endsWith('/chat/completions')) {
-          if (fullUrl.endsWith('/v1')) {
-            fullUrl += '/chat/completions';
-          } else if (fullUrl.endsWith('/')) {
-            fullUrl += 'v1/chat/completions';
-          } else {
-            fullUrl += '/v1/chat/completions';
+        let requestBody: Record<string, any>;
+        
+        if (isOllama) {
+          if (!fullUrl.endsWith('/api/chat')) {
+            if (fullUrl.endsWith('/v1')) {
+              fullUrl = fullUrl.replace(/\/v1$/, '/api/chat');
+            } else if (fullUrl.endsWith('/')) {
+              fullUrl += 'api/chat';
+            } else {
+              fullUrl += '/api/chat';
+            }
           }
+          requestBody = {
+            model: model || 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: 'hello' }],
+            stream: false,
+            think: false,
+          };
+        } else {
+          if (!fullUrl.endsWith('/chat/completions')) {
+            if (fullUrl.endsWith('/v1')) {
+              fullUrl += '/chat/completions';
+            } else if (fullUrl.endsWith('/')) {
+              fullUrl += 'v1/chat/completions';
+            } else {
+              fullUrl += '/v1/chat/completions';
+            }
+          }
+          requestBody = {
+            model: model || 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: 'hello' }],
+            max_tokens: 10,
+          };
         }
         
         const headers: Record<string, string> = {
@@ -223,11 +318,7 @@ llmRouter.post('/test', async (req, res) => {
         const response = await fetch(fullUrl, {
           method: 'POST',
           headers,
-          body: JSON.stringify({
-            model: model || 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: 'hello' }],
-            max_tokens: 10,
-          }),
+          body: JSON.stringify(requestBody),
         });
         
         if (response.ok) {
@@ -415,14 +506,18 @@ function getSuggestion2(message: string): string {
   return '关注今日运势，了解每日宜忌，趋吉避凶。';
 }
 
-async function loadUserProfile(userId: string): Promise<string> {
+async function loadUserProfile(userId: string): Promise<{ userInfo: string; city: string }> {
   const parts: string[] = [];
+  let city = '';
   
   try {
     const user = await UserDAO.findById(userId);
     if (user && user.birthYear) {
       const genderText = user.gender === 'male' ? '男' : '女';
       const calendarText = user.isLunar ? '农历' : '公历';
+      if (user.birthPlace) {
+        city = user.birthPlace;
+      }
       parts.push(`【基本信息】
 姓名：${user.name || '用户'}
 性别：${genderText}
@@ -463,10 +558,41 @@ ${user.birthPlace ? `出生地：${user.birthPlace}` : ''}`);
     console.error('加载用户信息失败:', e);
   }
   
-  return parts.join('\n\n');
+  return { userInfo: parts.join('\n\n'), city };
 }
 
-function buildSystemPrompt(userInfo: string): string {
+function buildSystemPrompt(userInfo: string, dailyInfo: any, weatherInfo: any): string {
+  const dailySection = `## 今日天时信息
+以下是今天的天时数据，请在回答时紧密结合这些信息，为用户提供每日针对性的分析：
+
+【日期与干支】
+公历：${dailyInfo.date}
+年柱：${dailyInfo.yearGan}${dailyInfo.yearZhi}（${dailyInfo.yearWuxing}）
+月柱：${dailyInfo.monthGan}${dailyInfo.monthZhi}（${dailyInfo.monthWuxing}）
+日柱：${dailyInfo.dayGan}${dailyInfo.dayZhi}（${dailyInfo.dayWuxing}）
+
+【节气时令】
+当前节气：${dailyInfo.solarTerm}
+季节：${dailyInfo.season}季
+当令五行：${dailyInfo.seasonElement}
+
+【今日宜忌】
+宜：${dailyInfo.yi.join('、')}
+忌：${dailyInfo.ji.join('、')}
+
+【节气养生提示】
+${dailyInfo.healthTips}
+推荐食物：${dailyInfo.recommendedFoods.join('、')}
+慎食：${dailyInfo.avoidFoods.join('、')}
+推荐穴位：${dailyInfo.recommendedAcupoints.join('、')}
+
+${weatherInfo.success ? `【实时天气】
+城市：${weatherInfo.city}
+天气：${weatherInfo.weather}
+温度：${weatherInfo.temperature}°C
+湿度：${weatherInfo.humidity}%
+风向风力：${weatherInfo.wind}` : ''}`;
+
   let prompt = `你是一位精通中医命理的大师，法号"玄明真人"。你深谙八字命理、紫微斗数、中医体质辨识、养生食疗、穴位保健等传统智慧。
 
 ## 你的风格特点
@@ -482,6 +608,8 @@ function buildSystemPrompt(userInfo: string): string {
 4. 鼓励用户积极向善，趋吉避凶
 5. 涉及健康问题时，提醒用户必要时就医
 
+${dailySection}
+
 ${userInfo ? `## 当前咨询用户信息
 以下是用户已提供的个人信息，请在回答时结合这些信息给出更有针对性的建议：
 
@@ -492,6 +620,14 @@ ${userInfo}
 - 结合用户的体质类型给出养生建议
 - 根据用户的八字特点分析运势和健康倾向
 - 所有建议都要贴合用户的具体情况，而非泛泛而谈` : '用户尚未提供详细个人信息，建议用户完善生辰信息以获得更精准的分析。'}
+
+## 每日分析要求
+你必须紧密结合今日天时信息（节气、干支、天气），确保每天的回答都不同：
+1. 根据今日节气特点，给出针对性的养生建议
+2. 根据今日干支五行，分析对用户八字的影响
+3. 根据今日天气情况，提醒用户注意事项（如雨天防湿、高温防暑等）
+4. 根据今日宜忌，给出日常活动建议
+5. 所有建议都要与用户的个人信息（八字、体质）相结合
 
 现在，请以中医命理大师的身份，用专业而亲切的语气回答用户的问题。`;
   

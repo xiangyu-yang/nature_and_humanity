@@ -9,6 +9,8 @@ interface Message {
   content: string;
   timestamp: Date;
   isThinking?: boolean;
+  thinkingContent?: string; // 思考过程内容
+  thinkingCollapsed?: boolean; // 思考过程是否折叠
 }
 
 interface ChatSession {
@@ -29,6 +31,7 @@ export function ChatPage() {
   const [showSessions, setShowSessions] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSession, setActiveSession] = useState<string | null>(null);
+  const [enableDeepThinking, setEnableDeepThinking] = useState(true); // 深度思考开关
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -164,6 +167,7 @@ export function ChatPage() {
           userId: user?.id || '', 
           message: input.trim(), 
           history,
+          enableDeepThinking,
           ...configToUse 
         }),
       });
@@ -192,14 +196,31 @@ export function ChatPage() {
           if (line.startsWith('data: ')) {
             const dataStr = line.slice(6);
             if (dataStr === '[DONE]') {
-              const finalContent = accumulatedContent || accumulatedReasoning || '抱歉，我没有生成任何回答。';
+              // 如果关闭了深度思考，直接显示最终答案
+              if (!enableDeepThinking && accumulatedContent) {
+                const finalMessages = messagesWithThinking
+                  .filter(m => m.id !== thinkingMessageId)
+                  .concat([{
+                    id: thinkingMessageId,
+                    role: 'assistant' as const,
+                    content: accumulatedContent,
+                    timestamp: new Date(),
+                  }]);
+                setMessages(finalMessages);
+                saveCurrentSession(finalMessages);
+                setIsLoading(false);
+                return;
+              }
+              // 如果开启了深度思考，折叠显示思考过程
               const finalMessages = messagesWithThinking
                 .filter(m => m.id !== thinkingMessageId)
                 .concat([{
                   id: thinkingMessageId,
                   role: 'assistant' as const,
-                  content: finalContent,
+                  content: accumulatedContent || '抱歉，我没有生成任何回答。',
                   timestamp: new Date(),
+                  thinkingContent: accumulatedReasoning,
+                  thinkingCollapsed: true, // 默认折叠
                 }]);
               setMessages(finalMessages);
               saveCurrentSession(finalMessages);
@@ -210,14 +231,27 @@ export function ChatPage() {
               const data = JSON.parse(dataStr);
               if (data.content) {
                 accumulatedContent += data.content;
-                setMessages(prev => 
-                  prev.map(m => 
-                    m.id === thinkingMessageId 
-                      ? { ...m, content: accumulatedContent, isThinking: false }
-                      : m
-                  )
-                );
-              } else if (data.reasoning) {
+                if (!enableDeepThinking) {
+                  // 关闭深度思考时，只显示最终答案
+                  setMessages(prev => 
+                    prev.map(m => 
+                      m.id === thinkingMessageId 
+                        ? { ...m, content: accumulatedContent, isThinking: false }
+                        : m
+                    )
+                  );
+                } else {
+                  // 开启深度思考时，显示思考过程
+                  const displayContent = `【分析中...】\n${accumulatedContent}`;
+                  setMessages(prev => 
+                    prev.map(m => 
+                      m.id === thinkingMessageId 
+                        ? { ...m, content: displayContent, isThinking: true }
+                        : m
+                    )
+                  );
+                }
+              } else if (data.reasoning && enableDeepThinking) {
                 accumulatedReasoning += data.reasoning;
                 if (accumulatedContent === '') {
                   setMessages(prev => 
@@ -390,7 +424,7 @@ export function ChatPage() {
             </button>
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400/30 shadow-lg bg-gradient-to-br from-teal-500 to-teal-700">
               <img
-                src="https://neeko-copilot.bytedance.net/api/text2image?prompt=ancient%20Chinese%20medicine%20master%20portrait%20with%20purple%20crystal%20ball%20glowing%20golden%20meridian%20lines%20on%20body%20green%20traditional%20robes%20mystical%20oriental%20style%20illustration%20avatar&image_size=square"
+                src="/img/profile.png"
                 alt="中医命理大师"
                 className="w-full h-full object-cover"
               />
@@ -415,6 +449,87 @@ export function ChatPage() {
             </button>
           </div>
         </header>
+
+        {/* 配置面板 - 移到header下方 */}
+        {showConfig && (
+          <div className="bg-ink-50 p-4 border-b border-ink-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-medium text-ink-600">大模型配置</h3>
+              <button onClick={() => setShowConfig(false)}>
+                <X className="w-5 h-5 text-ink-400" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-ink-500 mb-1">API地址</label>
+                <input
+                  type="text"
+                  value={llmConfig?.apiUrl || ''}
+                  onChange={(e) => setLlmConfig({ ...(llmConfig || {}), apiUrl: e.target.value })}
+                  placeholder="http://localhost:11434/v1"
+                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-ink-500 mb-1">模型名称</label>
+                <input
+                  type="text"
+                  value={llmConfig?.model || ''}
+                  onChange={(e) => setLlmConfig({ ...(llmConfig || {}), model: e.target.value })}
+                  placeholder="qwen3.6:35b-a3b-q8_0"
+                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs text-ink-500 mb-1">API密钥（Ollama不需要）</label>
+                <input
+                  type="password"
+                  value={llmConfig?.apiKey || ''}
+                  onChange={(e) => setLlmConfig({ ...(llmConfig || {}), apiKey: e.target.value })}
+                  placeholder="sk-..."
+                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-ink-200">
+                  <div>
+                    <p className="text-sm text-ink-600 font-medium">深度思考</p>
+                    <p className="text-xs text-ink-400">开启后，大模型会展示思考过程</p>
+                  </div>
+                  <button
+                    onClick={() => setEnableDeepThinking(!enableDeepThinking)}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${
+                      enableDeepThinking ? 'bg-teal-500' : 'bg-ink-200'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                        enableDeepThinking ? 'left-7' : 'left-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+              <div className="md:col-span-2 flex gap-2">
+                <button
+                  onClick={handleSaveConfig}
+                  className="flex-1 px-4 py-2 rounded-xl bg-teal-500 text-ink-50 text-sm hover:bg-teal-600 transition-colors"
+                >
+                  保存配置
+                </button>
+                <button
+                  onClick={() => {
+                    setLlmConfig({ apiUrl: '', apiKey: '', model: '', enableSearch: true });
+                    setShowConfig(false);
+                  }}
+                  className="px-4 py-2 rounded-xl border border-ink-200 text-sm text-ink-600 hover:bg-ink-50 transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Messages */}
         <main className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-teal-50/50 to-amber-50/30">
@@ -475,7 +590,32 @@ export function ChatPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      <div className="space-y-2">
+                        {msg.thinkingContent && msg.thinkingCollapsed !== undefined && (
+                          <div className="border-b border-ink-100 pb-2 mb-2">
+                            <button
+                              onClick={() => {
+                                setMessages(prev => prev.map(m => 
+                                  m.id === msg.id 
+                                    ? { ...m, thinkingCollapsed: !m.thinkingCollapsed }
+                                    : m
+                                ));
+                              }}
+                              className="flex items-center gap-2 text-xs text-teal-600 hover:text-teal-700 transition-colors"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>{msg.thinkingCollapsed ? '点击展开思考过程' : '点击收起思考过程'}</span>
+                              <span className="text-ink-300">({msg.thinkingContent.length} 字)</span>
+                            </button>
+                            {!msg.thinkingCollapsed && (
+                              <div className="mt-2 p-2 bg-amber-50/50 rounded-lg text-xs text-ink-400 italic whitespace-pre-wrap">
+                                {msg.thinkingContent.trim()}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      </div>
                     )}
                   </div>
                   <div className="text-xs text-ink-300 mt-1">
@@ -487,67 +627,6 @@ export function ChatPage() {
           )}
           <div ref={messagesEndRef} />
         </main>
-
-        {/* 配置面板 */}
-        {showConfig && (
-          <div className="bg-ink-50 p-4 border-t border-ink-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-ink-600">大模型配置</h3>
-              <button onClick={() => setShowConfig(false)}>
-                <X className="w-5 h-5 text-ink-400" />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-ink-500 mb-1">API地址</label>
-                <input
-                  type="text"
-                  value={llmConfig?.apiUrl || ''}
-                  onChange={(e) => setLlmConfig({ ...(llmConfig || {}), apiUrl: e.target.value })}
-                  placeholder="http://localhost:11434/v1"
-                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-ink-500 mb-1">模型名称</label>
-                <input
-                  type="text"
-                  value={llmConfig?.model || ''}
-                  onChange={(e) => setLlmConfig({ ...(llmConfig || {}), model: e.target.value })}
-                  placeholder="qwen3.6:35b-a3b-q8_0"
-                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs text-ink-500 mb-1">API密钥（Ollama不需要）</label>
-                <input
-                  type="password"
-                  value={llmConfig?.apiKey || ''}
-                  onChange={(e) => setLlmConfig({ ...(llmConfig || {}), apiKey: e.target.value })}
-                  placeholder="sk-..."
-                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
-                />
-              </div>
-              <div className="md:col-span-2 flex gap-2">
-                <button
-                  onClick={handleSaveConfig}
-                  className="flex-1 px-4 py-2 rounded-xl bg-teal-500 text-ink-50 text-sm hover:bg-teal-600 transition-colors"
-                >
-                  保存配置
-                </button>
-                <button
-                  onClick={() => {
-                    setLlmConfig({ apiUrl: '', apiKey: '', model: '', enableSearch: true });
-                    setShowConfig(false);
-                  }}
-                  className="px-4 py-2 rounded-xl border border-ink-200 text-sm text-ink-600 hover:bg-ink-50 transition-colors"
-                >
-                  取消
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Input */}
         <footer className="card-paper p-4 border-t border-ink-100">

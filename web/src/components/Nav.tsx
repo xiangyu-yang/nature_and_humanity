@@ -24,8 +24,8 @@ export function Sidebar() {
     <aside className="hidden md:flex flex-col w-60 lg:w-64 shrink-0 h-screen sticky top-0 border-r border-ink-100/60 bg-gradient-to-b from-ink-50/95 via-ink-50/85 to-ink-50/95 backdrop-blur-md">
       <div className="px-6 py-7 border-b border-ink-100/40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 grid place-items-center shadow-ink">
-            <span className="text-ink-50 font-display text-xl">五</span>
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-teal-400/30 shadow-ink">
+            <img src="/img/title.png" alt="五行中医" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="font-display text-xl text-ink-600 leading-none">五行中医</h1>
