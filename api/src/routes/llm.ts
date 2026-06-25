@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { LLMConfigDAO, UserDAO, BaziRecordDAO, ConstitutionResultDAO, ChatSessionDAO } from '../db/dao';
 import { getDailyInfo, getWeather } from '../utils/dailyAnalysis';
+import { buildRAGContext } from '../ai/rag';
 
 export const llmRouter = Router();
 
@@ -49,7 +50,9 @@ llmRouter.post('/chat', async (req, res) => {
       const dailyInfo = getDailyInfo();
       const weatherInfo = await getWeather(userCity || '北京');
       
-      const systemPrompt = buildSystemPrompt(userInfo, dailyInfo, weatherInfo);
+      const ragContext = await buildRAGContext(message, userId);
+      
+      const systemPrompt = buildSystemPrompt(userInfo, dailyInfo, weatherInfo, ragContext);
     
     if (configApiUrl && configModel) {
       try {
@@ -635,7 +638,7 @@ ${user.birthPlace ? `出生地：${user.birthPlace}` : ''}`);
   return { userInfo: parts.join('\n\n'), city };
 }
 
-function buildSystemPrompt(userInfo: string, dailyInfo: any, weatherInfo: any): string {
+function buildSystemPrompt(userInfo: string, dailyInfo: any, weatherInfo: any, ragContext: string = ''): string {
   const dailySection = `## 今日天时信息
 以下是今天的天时数据，请在回答时紧密结合这些信息，为用户提供每日针对性的分析：
 
@@ -683,6 +686,8 @@ ${weatherInfo.success ? `【实时天气】
 5. 涉及健康问题时，提醒用户必要时就医
 
 ${dailySection}
+
+${ragContext}
 
 ${userInfo ? `## 当前咨询用户信息
 以下是用户已提供的个人信息，请在回答时结合这些信息给出更有针对性的建议：

@@ -22,6 +22,18 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+async function formDataRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    ...options,
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || (data && data.code && data.code !== 0)) {
+    throw new ApiError(data?.code || res.status, data?.message || res.statusText);
+  }
+  return data as T;
+}
+
 export const api = {
   // 健康
   health: () => request<{ code: number; data: { status: string; service: string; time: string; version: string } }>('/health'),
@@ -94,6 +106,19 @@ export const api = {
   saveLLMConfig: (userId: string, config: LLMConfig) =>
     request<{ code: number; data: LLMConfig }>('/llm/config', { method: 'POST', body: JSON.stringify({ userId, ...config }) }),
   getLLMConfig: (userId: string) => request<{ code: number; data: LLMConfig }>(`/llm/config/${userId}`),
+
+  // RAG知识库
+  uploadDocument: (formData: FormData) =>
+    formDataRequest<{ code: number; data: { id: string; fileName: string; fileType: string; chunkCount: number; previewUrl?: string; createdAt: string } }>('/rag/upload', { method: 'POST', body: formData }),
+  getDocuments: (userId: string) => request<{ code: number; data: KnowledgeDocument[] }>(`/rag/documents/${userId}`),
+  getDocument: (userId: string, documentId: string) => request<{ code: number; data: KnowledgeDocument }>(`/rag/documents/${userId}/${documentId}`),
+  deleteDocument: (documentId: string, userId: string) =>
+    request<{ code: number; data: { success: boolean } }>(`/rag/documents/${documentId}?userId=${userId}`, { method: 'DELETE' }),
+  searchKnowledge: (query: string, userId?: string) =>
+    request<{ code: number; data: { chunk: string; similarity: number }[] }>('/rag/search', { method: 'POST', body: JSON.stringify({ query, userId }) }),
+  getDocumentPreview: (documentId: string, userId?: string, kkfileviewUrl?: string) =>
+    request<{ code: number; data: { previewUrl: string; fileName: string; fileType: string; serviceStatus?: string } }>('/rag/preview', { method: 'POST', body: JSON.stringify({ documentId, userId, kkfileviewUrl }) }),
+  getChunkStrategies: () => request<{ code: number; data: { strategies: ChunkStrategy[]; defaultConfig: ChunkConfig } }>('/rag/chunk-strategies'),
 };
 
 export const apiClient = api;
@@ -320,4 +345,27 @@ export interface LLMConfig {
   apiKey?: string;
   model?: string;
   enableSearch?: boolean;
+}
+
+export interface KnowledgeDocument {
+  id: string;
+  fileName: string;
+  fileType: string;
+  content?: string;
+  chunkCount: number;
+  chunkConfig?: ChunkConfig;
+  previewUrl?: string;
+  createdAt: string;
+}
+
+export interface ChunkStrategy {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface ChunkConfig {
+  strategy: string;
+  chunkSize: number;
+  chunkOverlap: number;
 }

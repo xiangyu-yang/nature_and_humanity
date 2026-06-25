@@ -15,12 +15,18 @@ import { profileRouter } from './routes/profile.js';
 import { wellnessRouter } from './routes/wellness.js';
 import { llmRouter } from './routes/llm.js';
 import { newsRouter } from './routes/news.js';
+import { ragRouter } from './routes/rag.js';
 import { initDatabase } from './db/sqlite.js';
 import fs from 'fs';
+import path from 'path';
 
 async function startServer() {
   if (!fs.existsSync('./data')) {
     fs.mkdirSync('./data', { recursive: true });
+  }
+
+  if (!fs.existsSync('./uploads')) {
+    fs.mkdirSync('./uploads', { recursive: true });
   }
 
   initDatabase();
@@ -31,6 +37,8 @@ async function startServer() {
   app.use(cors({ origin: true, credentials: true }));
   app.use(express.json({ limit: '2mb' }));
   app.use(morgan('dev'));
+
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   app.use('/api/health', healthRouter);
   app.use('/api/users', userRouter);
@@ -46,6 +54,7 @@ async function startServer() {
   app.use('/api/wellness', wellnessRouter);
   app.use('/api/llm', llmRouter);
   app.use('/api/news', newsRouter);
+  app.use('/api/rag', ragRouter);
 
   app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('[api error]', err);

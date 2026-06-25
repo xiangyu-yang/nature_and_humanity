@@ -87,6 +87,16 @@ export interface ChatSession {
   updatedAt: string;
 }
 
+export interface KnowledgeBase {
+  id: string;
+  userId: string;
+  fileName: string;
+  fileType: string;
+  content: string;
+  chunkCount: number;
+  createdAt: string;
+}
+
 export const UserDAO = {
   create: async (data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> => {
     const id = nanoid(12);
@@ -437,4 +447,55 @@ export const ChatSessionDAO = {
     }
     return sessions.length;
   }
+};
+
+export const KnowledgeBaseDAO = {
+  insert: async (data: any): Promise<void> => {
+    await db.run(`
+      INSERT INTO knowledge_bases (id, userId, fileName, fileType, content, chunkCount, chunkConfig, previewUrl, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [data.id, data.userId, data.fileName, data.fileType, data.content, data.chunkCount, data.chunkConfig || null, data.previewUrl || null, data.createdAt]);
+  },
+
+  findById: async (id: string): Promise<any | undefined> => {
+    const row = await db.get('SELECT * FROM knowledge_bases WHERE id = ?', [id]);
+    return row;
+  },
+
+  findByUserId: async (userId: string): Promise<any[]> => {
+    const rows = await db.all('SELECT * FROM knowledge_bases WHERE userId = ? ORDER BY createdAt DESC', [userId]);
+    return rows;
+  },
+
+  update: async (id: string, data: { previewUrl?: string; chunkConfig?: string }): Promise<void> => {
+    const fields: string[] = [];
+    const values: any[] = [];
+    
+    if (data.previewUrl !== undefined) {
+      fields.push('previewUrl = ?');
+      values.push(data.previewUrl);
+    }
+    if (data.chunkConfig !== undefined) {
+      fields.push('chunkConfig = ?');
+      values.push(data.chunkConfig);
+    }
+    
+    if (fields.length === 0) return;
+    
+    values.push(id);
+    
+    await db.run(`UPDATE knowledge_bases SET ${fields.join(', ')} WHERE id = ?`, values);
+  },
+
+  delete: async (id: string): Promise<boolean> => {
+    const result = await db.run('DELETE FROM knowledge_bases WHERE id = ?', [id]);
+    return result.changes > 0;
+  },
+
+  deleteByUserId: async (userId: string): Promise<void> => {
+    const docs = await KnowledgeBaseDAO.findByUserId(userId);
+    for (const doc of docs) {
+      await db.run('DELETE FROM knowledge_bases WHERE id = ?', [doc.id]);
+    }
+  },
 };

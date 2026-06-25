@@ -16,6 +16,7 @@ const items = [
   { path: '/food', label: '食疗', icon: Apple },
   { path: '/acupoint', label: '穴位', icon: Activity },
   { path: '/family', label: '家庭', icon: Users },
+  { path: '/knowledge', label: '知识库', icon: BookOpen },
   { path: '/profile', label: '我的', icon: Settings },
 ];
 
