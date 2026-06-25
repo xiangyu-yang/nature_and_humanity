@@ -1,5 +1,5 @@
 // API 客户端
-const API_BASE = '/api';
+export const API_BASE = '/api';
 
 export class ApiError extends Error {
   code: number;
@@ -85,6 +85,15 @@ export const api = {
 
   // 我的信息
   getProfile: (userId: string) => request<{ code: number; data: ProfileData }>(`/profile/${userId}`),
+
+  // 大模型对话
+  chatWithLLM: (userId: string, message: string, history?: Array<{ role: 'user' | 'assistant'; content: string }>, config?: LLMConfig) =>
+    request<{ code: number; data: LLMResponse }>('/llm/chat', { method: 'POST', body: JSON.stringify({ userId, message, history, ...config }) }),
+  testLLMConnection: (config: LLMConfig) =>
+    request<{ code: number; data: { success: boolean; message: string } }>('/llm/test', { method: 'POST', body: JSON.stringify(config) }),
+  saveLLMConfig: (userId: string, config: LLMConfig) =>
+    request<{ code: number; data: LLMConfig }>('/llm/config', { method: 'POST', body: JSON.stringify({ userId, ...config }) }),
+  getLLMConfig: (userId: string) => request<{ code: number; data: LLMConfig }>(`/llm/config/${userId}`),
 };
 
 export const apiClient = api;
@@ -298,4 +307,17 @@ export interface ProfileData {
   family: FamilyMember[];
   favorites: any[];
   settings: any;
+}
+
+export interface LLMResponse {
+  content: string;
+  searchResults?: { title: string; snippet: string; url: string }[];
+  isSearchUsed?: boolean;
+}
+
+export interface LLMConfig {
+  apiUrl?: string;
+  apiKey?: string;
+  model?: string;
+  enableSearch?: boolean;
 }

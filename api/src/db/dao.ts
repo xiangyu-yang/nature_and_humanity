@@ -66,6 +66,17 @@ export interface Favorite {
   createdAt: string;
 }
 
+export interface LLMConfig {
+  id: string;
+  userId: string;
+  apiUrl: string;
+  apiKey: string;
+  model: string;
+  enableSearch: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const UserDAO = {
   create: async (data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> => {
     const id = nanoid(12);
@@ -290,6 +301,63 @@ export const FavoriteDAO = {
 
   delete: async (id: string): Promise<boolean> => {
     const result = await db.run('DELETE FROM favorites WHERE id = ?', [id]);
+    return result.changes > 0;
+  }
+};
+
+export const LLMConfigDAO = {
+  create: async (data: Omit<LLMConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<LLMConfig> => {
+    const id = nanoid(12);
+    const createdAt = new Date().toISOString();
+    const updatedAt = createdAt;
+    await db.run(`
+      INSERT INTO llm_configs (id, userId, apiUrl, apiKey, model, enableSearch, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, data.userId, data.apiUrl, data.apiKey, data.model, data.enableSearch, createdAt, updatedAt]);
+    return { ...data, id, createdAt, updatedAt };
+  },
+
+  findById: async (id: string): Promise<LLMConfig | undefined> => {
+    const row = await db.get('SELECT * FROM llm_configs WHERE id = ?', [id]);
+    return row as LLMConfig | undefined;
+  },
+
+  findByUserId: async (userId: string): Promise<LLMConfig | undefined> => {
+    const row = await db.get('SELECT * FROM llm_configs WHERE userId = ? ORDER BY updatedAt DESC LIMIT 1', [userId]);
+    return row as LLMConfig | undefined;
+  },
+
+  update: async (userId: string, data: Partial<Omit<LLMConfig, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<LLMConfig | undefined> => {
+    const updatedAt = new Date().toISOString();
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (data.apiUrl !== undefined) { fields.push('apiUrl = ?'); values.push(data.apiUrl); }
+    if (data.apiKey !== undefined) { fields.push('apiKey = ?'); values.push(data.apiKey); }
+    if (data.model !== undefined) { fields.push('model = ?'); values.push(data.model); }
+    if (data.enableSearch !== undefined) { fields.push('enableSearch = ?'); values.push(data.enableSearch); }
+    fields.push('updatedAt = ?');
+    values.push(updatedAt);
+    values.push(userId);
+
+    if (fields.length === 0) return LLMConfigDAO.findByUserId(userId);
+
+    await db.run(`UPDATE llm_configs SET ${fields.join(', ')} WHERE userId = ?`, values);
+    return LLMConfigDAO.findByUserId(userId);
+  },
+
+  upsert: async (userId: string, data: Omit<LLMConfig, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<LLMConfig> => {
+    const existing = await LLMConfigDAO.findByUserId(userId);
+    if (existing) {
+      const updated = await LLMConfigDAO.update(userId, data);
+      return updated!;
+    } else {
+      return await LLMConfigDAO.create({ userId, ...data });
+    }
+  },
+
+  delete: async (id: string): Promise<boolean> => {
+    const result = await db.run('DELETE FROM llm_configs WHERE id = ?', [id]);
     return result.changes > 0;
   }
 };

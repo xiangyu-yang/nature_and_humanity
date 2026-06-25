@@ -11,6 +11,7 @@ interface StoreData {
   constitutionResults: Record<string, any>;
   familyMembers: Record<string, any>;
   favorites: Record<string, any>;
+  llmConfigs: Record<string, any>;
 }
 
 let storeData: StoreData = {
@@ -19,6 +20,7 @@ let storeData: StoreData = {
   constitutionResults: {},
   familyMembers: {},
   favorites: {},
+  llmConfigs: {},
 };
 
 const tableNameMap: Record<string, keyof StoreData> = {
@@ -32,6 +34,8 @@ const tableNameMap: Record<string, keyof StoreData> = {
   'family_members': 'familyMembers',
   'favorite': 'favorites',
   'favorites': 'favorites',
+  'llm_config': 'llmConfigs',
+  'llm_configs': 'llmConfigs',
 };
 
 export function initDatabase() {
@@ -45,7 +49,15 @@ export function initDatabase() {
   if (fs.existsSync(DB_FILE)) {
     try {
       const content = fs.readFileSync(DB_FILE, 'utf-8');
-      storeData = JSON.parse(content);
+      const loaded = JSON.parse(content);
+      storeData = {
+        users: loaded.users || {},
+        baziRecords: loaded.baziRecords || {},
+        constitutionResults: loaded.constitutionResults || {},
+        familyMembers: loaded.familyMembers || {},
+        favorites: loaded.favorites || {},
+        llmConfigs: loaded.llmConfigs || {},
+      };
       console.log('[DB] Loaded existing database with', Object.keys(storeData.users).length, 'users');
     } catch (err) {
       console.error('[DB] Failed to load database:', err);
@@ -55,6 +67,7 @@ export function initDatabase() {
         constitutionResults: {},
         familyMembers: {},
         favorites: {},
+        llmConfigs: {},
       };
     }
   }

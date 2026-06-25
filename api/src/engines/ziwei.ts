@@ -266,5 +266,5 @@ export function calcZiwei(input: ZiweiInput): ZiweiResult {
 function generateZiweiSummary(mingGong: Gong, wuxing: string, ju: number): string {
   const stars = mingGong.majorStars.map(s => `${s.name}（${s.brightness}）`).join('、');
   const starDesc = stars || '无主星，借对宫星曜';
-  return `命宫为${wuxing}第${ju}局，坐${mingGong.earthlyBranch}宫，${starDesc}。主人${mingGong.majorStars.length > 0 ? mingGong.majorStars[0].trait : '多才多艺'}，需后天修养方成大器。`;
+  return `命宫为${wuxing}第${ju}局，坐${mingGong.earthlyBranch}宫，${starDesc}。主人${mingGong.majorStars.length > 0 ? mingGong.majorStars[0].trait : '多才多艺'}，需后天修养方成大器`;
 }

@@ -12,6 +12,7 @@ import { FoodPage } from './pages/FoodPage';
 import { AcupointPage } from './pages/AcupointPage';
 import { FamilyPage } from './pages/FamilyPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { ChatPage } from './pages/ChatPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { useUserStore } from './stores/userStore';
@@ -52,6 +53,7 @@ export function App() {
           <Route path="acupoint" element={<AcupointPage />} />
           <Route path="family" element={<FamilyPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="chat" element={<ChatPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User as UserIcon, Bell, Lock, Heart, ChevronRight, Edit, LogOut, Sparkles, BookOpen, History } from 'lucide-react';
-import { api, type ProfileData } from '@/api/client';
+import { User as UserIcon, Bell, Lock, Heart, ChevronRight, Edit, LogOut, Sparkles, BookOpen, History, Bot, Settings, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { api, type ProfileData, type LLMConfig } from '@/api/client';
 import { useUserStore } from '@/stores/userStore';
 import { formatDate } from '@/utils';
 
@@ -11,14 +11,30 @@ export function ProfilePage() {
   const logout = useUserStore(s => s.logout);
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const [llmConfig, setLlmConfig] = useState<LLMConfig>({
+    apiUrl: '',
+    apiKey: '',
+    model: 'gpt-3.5-turbo',
+    enableSearch: true,
+  });
+  const [showLLMConfig, setShowLLMConfig] = useState(false);
+  const [testResult, setTestResult] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [testMessage, setTestMessage] = useState('');
 
   useEffect(() => {
     if (!user) {
       navigate('/birth');
       return;
     }
-    api.getProfile(user.id).then(d => {
-      setData(d.data);
+    Promise.all([
+      api.getProfile(user.id),
+      api.getLLMConfig(user.id),
+    ]).then(([profileResult, configResult]) => {
+      setData(profileResult.data);
+      setLlmConfig(configResult.data);
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
   }, [user, navigate]);
@@ -27,6 +43,32 @@ export function ProfilePage() {
     if (confirm('确定退出登录？生辰信息将保留')) {
       logout();
       navigate('/login');
+    }
+  };
+
+  const handleTestLLM = async () => {
+    setTestResult('testing');
+    try {
+      const result = await api.testLLMConnection(llmConfig);
+      if (result.data.success) {
+        setTestResult('success');
+        setTestMessage(result.data.message);
+      } else {
+        setTestResult('error');
+        setTestMessage(result.data.message);
+      }
+    } catch {
+      setTestResult('error');
+      setTestMessage('测试失败，请检查网络连接');
+    }
+  };
+
+  const handleSaveLLMConfig = async () => {
+    try {
+      await api.saveLLMConfig(user?.id || '', llmConfig);
+      alert('配置保存成功');
+    } catch {
+      alert('保存失败');
     }
   };
 
@@ -147,6 +189,90 @@ export function ProfilePage() {
           <SettingItem icon={Bell} title="消息通知" desc="运势提醒、节气养生" />
           <SettingItem icon={Lock} title="账号安全" desc="密码与登录管理" />
           <SettingItem icon={UserIcon} title="个人资料" desc="编辑个人信息" link="/birth" />
+          <button
+            onClick={() => setShowLLMConfig(!showLLMConfig)}
+            className="w-full p-4 flex items-center gap-3 hover:bg-ink-50/30 transition-colors"
+          >
+            <Settings className="w-5 h-5 text-ink-500" />
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-ink-600">大模型配置</div>
+              <div className="text-xs text-ink-400 mt-0.5">API地址、密钥等设置</div>
+            </div>
+            <ChevronRight className={`w-4 h-4 text-ink-300 transition-transform ${showLLMConfig ? 'rotate-90' : ''}`} />
+          </button>
+          
+          {showLLMConfig && (
+            <div className="p-4 bg-ink-50/50 space-y-4">
+              <div>
+                <label className="block text-xs text-ink-500 mb-1">API地址</label>
+                <input
+                  type="text"
+                  value={llmConfig.apiUrl}
+                  onChange={(e) => setLlmConfig({ ...llmConfig, apiUrl: e.target.value })}
+                  placeholder="https://api.openai.com/v1/chat/completions"
+                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-ink-500 mb-1">API密钥</label>
+                <input
+                  type="password"
+                  value={llmConfig.apiKey}
+                  onChange={(e) => setLlmConfig({ ...llmConfig, apiKey: e.target.value })}
+                  placeholder="sk-..."
+                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-ink-500 mb-1">模型名称</label>
+                <input
+                  type="text"
+                  value={llmConfig.model}
+                  onChange={(e) => setLlmConfig({ ...llmConfig, model: e.target.value })}
+                  placeholder="gpt-3.5-turbo"
+                  className="w-full px-3 py-2 rounded-xl border border-ink-200 text-sm focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-ink-500">启用联网搜索</span>
+                <button
+                  onClick={() => setLlmConfig({ ...llmConfig, enableSearch: !llmConfig.enableSearch })}
+                  className={`w-12 h-6 rounded-full transition-colors ${llmConfig.enableSearch ? 'bg-teal-500' : 'bg-ink-300'}`}
+                >
+                  <div className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${llmConfig.enableSearch ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleTestLLM}
+                  disabled={testResult === 'testing'}
+                  className="flex-1 px-4 py-2 rounded-xl border border-ink-200 text-sm text-ink-600 hover:bg-ink-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  {testResult === 'testing' ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      测试中...
+                    </>
+                  ) : (
+                    <>测试连接</>
+                  )}
+                </button>
+                <button
+                  onClick={handleSaveLLMConfig}
+                  className="flex-1 px-4 py-2 rounded-xl bg-teal-500 text-ink-50 text-sm hover:bg-teal-600 transition-colors"
+                >
+                  保存配置
+                </button>
+              </div>
+              {testResult !== 'idle' && (
+                <div className={`flex items-center gap-2 text-sm ${testResult === 'success' ? 'text-emerald-600' : 'text-cinnabar-600'}`}>
+                  {testResult === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                  {testMessage}
+                </div>
+              )}
+            </div>
+          )}
+          
           <button
             onClick={handleLogout}
             className="w-full p-4 flex items-center gap-3 hover:bg-cinnabar-50/30 transition-colors text-cinnabar-500"

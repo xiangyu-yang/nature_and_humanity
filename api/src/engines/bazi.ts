@@ -350,13 +350,13 @@ function generateSummary(dayMaster: string, wx: string, count: Record<string, nu
   const basePersonality = `${dayMaster}（${tianGanPersonality[dayMaster]}）日主，主人${personalityByWx[wx]}。`;
   const balancePart =
     missing.length > 0
-      ? `五行中${missing.join('、')}较为缺失，可在生活中适当补益。`
+      ? `五行中${missing.join('、')}较为缺失，可在生活中适当补益`
       : '五行齐备，气韵中和。';
   const featurePart =
     strong.length > 0
-      ? `${strong.join('、')}偏旺，宜疏通泄秀。`
+      ? `${strong.join('、')}偏旺，宜疏通泄秀`
       : weak.length > 0
-      ? `${weak.join('、')}偏弱，宜扶助培元。`
+      ? `${weak.join('、')}偏弱，宜扶助培元`
       : '五行相对平衡。';
   return `${basePersonality}${balancePart}${featurePart}`;
 }

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   Calendar, BookOpen, Sparkles, Stethoscope, FileText,
   Heart, Compass, Apple, Activity, Users, Settings,
-  ChevronRight, Sun, Moon,
+  ChevronRight, Sun, Moon, MessageCircle,
 } from 'lucide-react';
 import { api, type DailyFortune } from '@/api/client';
 import { useUserStore } from '@/stores/userStore';
@@ -210,6 +210,21 @@ export function HomePage() {
           知五行，通脏腑，调阴阳，致中和
         </p>
       </section>
+
+      {/* 漂浮机器人入口 */}
+      <Link
+        to="/chat"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 shadow-lg shadow-teal-500/30 flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-teal-500/40 transition-all duration-300 cursor-pointer group z-50"
+        title="中医命理大师"
+      >
+        <MessageCircle className="w-6 h-6 text-ink-50" />
+        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 border-2 border-ink-50 flex items-center justify-center">
+          <span className="w-2 h-2 rounded-full bg-ink-50" />
+        </div>
+        <div className="absolute right-full mr-3 px-3 py-2 bg-ink-600 text-ink-50 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          中医命理大师
+        </div>
+      </Link>
     </div>
   );
 }
