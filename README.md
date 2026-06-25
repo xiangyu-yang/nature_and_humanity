@@ -33,6 +33,14 @@
 - **多轮对话** - 支持会话历史与多轮对话
 - **模型配置** - 支持配置自定义大模型服务（如Ollama）
 
+### 📚 RAG知识库
+- **文档上传** - 支持PDF、Word（.doc/.docx）、TXT、Markdown格式
+- **智能解析** - 自动解析文档内容，处理文本、图片、表格
+- **分片策略** - 支持固定长度、按句子、按段落三种分片方式
+- **向量检索** - 基于Embedding的语义检索，支持余弦相似度计算
+- **文档预览** - 集成kkFileView在线预览，支持PDF、Word等格式
+- **自动服务** - 自动检测并启动kkFileView预览服务
+
 ### 👨‍👩‍👧‍👦 家庭健康
 - **家庭成员管理** - 添加家庭成员健康档案
 - **家族健康分析** - 家族健康趋势分析
@@ -120,6 +128,7 @@ nature_and_humanity/
 │   │   │   ├── llm.ts      # 大模型对话路由
 │   │   │   ├── bazi.ts     # 八字排盘路由
 │   │   │   ├── ziwei.ts    # 紫微星盘路由
+│   │   │   ├── rag.ts      # RAG知识库路由（上传、检索、预览）
 │   │   │   ├── news.ts     # 养生资讯路由（联网搜索、详情页、定时更新）
 │   │   │   └── ...
 │   │   ├── engines/        # 计算引擎
@@ -128,10 +137,14 @@ nature_and_humanity/
 │   │   │   ├── solar.ts    # 节气历法引擎
 │   │   │   └── ...
 │   │   ├── ai/             # AI分析引擎
+│   │   │   ├── rag.ts      # RAG核心引擎（文档解析、分片、向量化）
+│   │   │   ├── kkfileview.ts # kkFileView服务管理
+│   │   │   └── ...
 │   │   ├── db/             # 数据库操作
 │   │   ├── utils/          # 工具函数
 │   │   │   └── dailyAnalysis.ts  # 每日分析工具
 │   │   └── data/           # 知识库数据
+│   ├── uploads/            # 上传文件存储
 │   └── package.json
 ├── web/                    # 前端应用
 │   ├── src/
@@ -139,6 +152,7 @@ nature_and_humanity/
 │   │   ├── App.tsx         # 根组件
 │   │   ├── pages/
 │   │   │   ├── ChatPage.tsx     # 大模型对话页面
+│   │   │   ├── KnowledgeBasePage.tsx # 知识库管理页面
 │   │   │   ├── NewsDetailPage.tsx # 养生资讯详情页
 │   │   │   └── ...
 │   │   ├── components/     # 通用组件
@@ -182,6 +196,19 @@ nature_and_humanity/
 - `POST /api/llm/config` - 保存大模型配置
 - `GET /api/llm/config/:userId` - 获取大模型配置
 - `POST /api/llm/test` - 测试大模型连接
+- `GET /api/llm/sessions/:userId` - 获取会话历史列表
+- `POST /api/llm/sessions` - 创建新会话
+- `DELETE /api/llm/sessions/:sessionId` - 删除会话
+
+### RAG知识库
+- `POST /api/rag/upload` - 上传文档（支持PDF/Word/TXT/MD）
+- `GET /api/rag/documents/:userId` - 获取用户文档列表
+- `GET /api/rag/documents/:userId/:documentId` - 获取文档详情
+- `DELETE /api/rag/documents/:documentId` - 删除文档
+- `POST /api/rag/search` - 搜索知识库内容
+- `POST /api/rag/preview` - 获取文档预览链接
+- `GET /api/rag/chunk-strategies` - 获取分片策略配置
+- `GET /api/rag/preview/health` - 检查预览服务状态
 
 ## 设计理念
 
@@ -203,6 +230,7 @@ nature_and_humanity/
 - 体质测评结果
 - 大模型配置
 - 会话历史
+- 知识库文档（向量数据）
 
 ## 每日分析功能
 
