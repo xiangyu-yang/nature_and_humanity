@@ -23,6 +23,7 @@
 - **食疗推荐** - 根据体质推荐适宜食材
 - **穴位保健** - 常用养生穴位介绍与按摩方法
 - **今日运势** - 每日五行运势与宜忌
+- **养生资讯** - 多主题实时养生资讯（体质知识、节气养生、穴位保健、食疗养生等），支持详情页阅读，每日定时更新
 
 ### 🤖 AI大模型对话
 - **智能问答** - 基于大模型的中医命理智能问答
@@ -119,6 +120,7 @@ nature_and_humanity/
 │   │   │   ├── llm.ts      # 大模型对话路由
 │   │   │   ├── bazi.ts     # 八字排盘路由
 │   │   │   ├── ziwei.ts    # 紫微星盘路由
+│   │   │   ├── news.ts     # 养生资讯路由（联网搜索、详情页、定时更新）
 │   │   │   └── ...
 │   │   ├── engines/        # 计算引擎
 │   │   │   ├── bazi.ts     # 八字排盘引擎
@@ -136,7 +138,8 @@ nature_and_humanity/
 │   │   ├── main.tsx        # 应用入口
 │   │   ├── App.tsx         # 根组件
 │   │   ├── pages/
-│   │   │   ├── ChatPage.tsx # 大模型对话页面
+│   │   │   ├── ChatPage.tsx     # 大模型对话页面
+│   │   │   ├── NewsDetailPage.tsx # 养生资讯详情页
 │   │   │   └── ...
 │   │   ├── components/     # 通用组件
 │   │   ├── stores/         # 状态管理
@@ -167,6 +170,9 @@ nature_and_humanity/
 - `GET /api/food/recommend` - 食疗推荐
 - `GET /api/acupoints` - 获取穴位列表
 - `GET /api/fortune/today` - 获取今日运势
+- `GET /api/news` - 获取养生资讯列表（支持多主题）
+- `GET /api/news/:id` - 获取资讯详情
+- `POST /api/news/refresh` - 手动刷新资讯
 
 ### 综合报告
 - `POST /api/report` - 生成综合报告

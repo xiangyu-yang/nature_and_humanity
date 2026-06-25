@@ -6,6 +6,8 @@ import { useUserStore } from '../stores/userStore';
 export function LoginPage() {
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
+  const setConstitution = useUserStore((state) => state.setConstitution);
+  const setBazi = useUserStore((state) => state.setBazi);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -29,6 +31,21 @@ export function LoginPage() {
       if (data.code === 0) {
         setUser(data.data);
         localStorage.setItem('user', JSON.stringify(data.data));
+        
+        const profileResponse = await fetch(`/api/profile/${data.data.id}`);
+        const profileData = await profileResponse.json();
+        if (profileData.code === 0 && profileData.data) {
+          if (profileData.data.constitution) {
+            setConstitution({
+              primaryType: profileData.data.constitution.primaryType,
+              secondaryType: profileData.data.constitution.secondaryType || null,
+            });
+          }
+          if (profileData.data.bazi) {
+            setBazi(profileData.data.bazi);
+          }
+        }
+        
         navigate('/');
       } else {
         setError(data.message);

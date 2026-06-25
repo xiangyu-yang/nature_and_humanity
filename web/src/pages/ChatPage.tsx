@@ -53,15 +53,90 @@ export function ChatPage() {
     }
   };
 
-  const loadSessions = () => {
-    const stored = localStorage.getItem(`chat_sessions_${user?.id}`);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setSessions(parsed);
-      } catch {
-        setSessions([]);
+  const loadSessions = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const result = await fetch(`${API_BASE}/llm/sessions/${user.id}`);
+      const data = await result.json();
+      if (data.code === 0 && data.data) {
+        const parsedSessions = data.data.map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          lastMessage: s.lastMessage,
+          timestamp: new Date(s.timestamp),
+          messages: s.messages?.map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.timestamp),
+          })) || [],
+        }));
+        setSessions(parsedSessions);
+        localStorage.setItem(`chat_sessions_${user.id}`, JSON.stringify(parsedSessions));
+      } else {
+        throw new Error('加载失败');
       }
+    } catch (e) {
+      console.error('加载会话失败，使用本地缓存:', e);
+      const stored = localStorage.getItem(`chat_sessions_${user?.id}`);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setSessions(parsed);
+        } catch {
+          setSessions([]);
+        }
+      }
+    }
+  };
+
+  const saveSessionToServer = async (sessionData: {
+    sessionId?: string;
+    title: string;
+    messages: Message[];
+    lastMessage: string;
+  }) => {
+    if (!user?.id) return null;
+    
+    try {
+      const result = await fetch(`${API_BASE}/llm/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          sessionId: sessionData.sessionId,
+          title: sessionData.title,
+          messages: sessionData.messages.map(m => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp,
+            thinkingContent: m.thinkingContent,
+            thinkingCollapsed: m.thinkingCollapsed,
+          })),
+          lastMessage: sessionData.lastMessage,
+        }),
+      });
+      const data = await result.json();
+      if (data.code === 0 && data.data) {
+        return data.data;
+      }
+      return null;
+    } catch (e) {
+      console.error('保存会话到服务器失败:', e);
+      return null;
+    }
+  };
+
+  const deleteSessionFromServer = async (sessionId: string) => {
+    try {
+      const result = await fetch(`${API_BASE}/llm/sessions/${sessionId}`, {
+        method: 'DELETE',
+      });
+      const data = await result.json();
+      return data.code === 0;
+    } catch (e) {
+      console.error('删除会话失败:', e);
+      return false;
     }
   };
 
@@ -85,16 +160,17 @@ export function ChatPage() {
     setShowSessions(false);
   };
 
-  const deleteSession = (sessionId: string) => {
+  const deleteSession = async (sessionId: string) => {
     const updated = sessions.filter(s => s.id !== sessionId);
     saveSessions(updated);
     if (activeSession === sessionId) {
       setActiveSession(null);
       setMessages([]);
     }
+    await deleteSessionFromServer(sessionId);
   };
 
-  const saveCurrentSession = (newMessages: Message[]) => {
+  const saveCurrentSession = async (newMessages: Message[]) => {
     const firstUserMessage = newMessages.find(m => m.role === 'user');
     if (!firstUserMessage) return;
 
@@ -108,6 +184,12 @@ export function ChatPage() {
           : s
       );
       saveSessions(updated);
+      await saveSessionToServer({
+        sessionId: activeSession,
+        title,
+        messages: newMessages,
+        lastMessage,
+      });
     } else {
       const newSession: ChatSession = {
         id: Date.now().toString(),
@@ -119,6 +201,20 @@ export function ChatPage() {
       const updated = [newSession, ...sessions.slice(0, 19)];
       saveSessions(updated);
       setActiveSession(newSession.id);
+      
+      const serverResult = await saveSessionToServer({
+        title,
+        messages: newMessages,
+        lastMessage,
+      });
+      
+      if (serverResult && serverResult.id) {
+        const finalUpdated = updated.map(s => 
+          s.id === newSession.id ? { ...s, id: serverResult.id } : s
+        );
+        saveSessions(finalUpdated);
+        setActiveSession(serverResult.id);
+      }
     }
   };
 
@@ -207,7 +303,7 @@ export function ChatPage() {
                     timestamp: new Date(),
                   }]);
                 setMessages(finalMessages);
-                saveCurrentSession(finalMessages);
+                await saveCurrentSession(finalMessages);
                 setIsLoading(false);
                 return;
               }
@@ -223,7 +319,7 @@ export function ChatPage() {
                   thinkingCollapsed: true, // 默认折叠
                 }]);
               setMessages(finalMessages);
-              saveCurrentSession(finalMessages);
+              await saveCurrentSession(finalMessages);
               setIsLoading(false);
               return;
             }
@@ -280,7 +376,7 @@ export function ChatPage() {
           timestamp: new Date(),
         }]);
       setMessages(finalMessages);
-      saveCurrentSession(finalMessages);
+      await saveCurrentSession(finalMessages);
       setIsLoading(false);
     } catch (error) {
       console.error('聊天错误:', error);
@@ -293,7 +389,7 @@ export function ChatPage() {
           timestamp: new Date(),
         }]);
       setMessages(errorMessages);
-      saveCurrentSession(errorMessages);
+      await saveCurrentSession(errorMessages);
       setIsLoading(false);
     }
   };

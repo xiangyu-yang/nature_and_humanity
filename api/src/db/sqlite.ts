@@ -12,6 +12,7 @@ interface StoreData {
   familyMembers: Record<string, any>;
   favorites: Record<string, any>;
   llmConfigs: Record<string, any>;
+  chatSessions: Record<string, any>;
 }
 
 let storeData: StoreData = {
@@ -21,6 +22,7 @@ let storeData: StoreData = {
   familyMembers: {},
   favorites: {},
   llmConfigs: {},
+  chatSessions: {},
 };
 
 const tableNameMap: Record<string, keyof StoreData> = {
@@ -36,6 +38,8 @@ const tableNameMap: Record<string, keyof StoreData> = {
   'favorites': 'favorites',
   'llm_config': 'llmConfigs',
   'llm_configs': 'llmConfigs',
+  'chat_session': 'chatSessions',
+  'chat_sessions': 'chatSessions',
 };
 
 export function initDatabase() {
@@ -57,6 +61,7 @@ export function initDatabase() {
         familyMembers: loaded.familyMembers || {},
         favorites: loaded.favorites || {},
         llmConfigs: loaded.llmConfigs || {},
+        chatSessions: loaded.chatSessions || {},
       };
       console.log('[DB] Loaded existing database with', Object.keys(storeData.users).length, 'users');
     } catch (err) {
@@ -68,6 +73,7 @@ export function initDatabase() {
         familyMembers: {},
         favorites: {},
         llmConfigs: {},
+        chatSessions: {},
       };
     }
   }

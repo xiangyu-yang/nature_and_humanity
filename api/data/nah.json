@@ -495,6 +495,114 @@
       "shishen": "{\"day\":\"日主\",\"year\":\"比肩\",\"month\":\"正财\",\"hour\":\"比肩\"}",
       "daYun": "[{\"sequence\":1,\"gan\":\"辛\",\"zhi\":\"申\",\"startAge\":10},{\"sequence\":2,\"gan\":\"庚\",\"zhi\":\"未\",\"startAge\":20},{\"sequence\":3,\"gan\":\"己\",\"zhi\":\"午\",\"startAge\":30},{\"sequence\":4,\"gan\":\"戊\",\"zhi\":\"巳\",\"startAge\":40},{\"sequence\":5,\"gan\":\"丁\",\"zhi\":\"辰\",\"startAge\":50},{\"sequence\":6,\"gan\":\"丙\",\"zhi\":\"卯\",\"startAge\":60},{\"sequence\":7,\"gan\":\"乙\",\"zhi\":\"寅\",\"startAge\":70},{\"sequence\":8,\"gan\":\"甲\",\"zhi\":\"丑\",\"startAge\":80}]",
       "createdAt": "2026-06-25T03:05:28.854Z"
+    },
+    "zTRy8zyWtGvk": {
+      "id": "zTRy8zyWtGvk",
+      "userId": "RicYNOzYO1zr",
+      "yearGan": "己",
+      "yearZhi": "巳",
+      "monthGan": "壬",
+      "monthZhi": "酉",
+      "dayGan": "己",
+      "dayZhi": "未",
+      "hourGan": "辛",
+      "hourZhi": "未",
+      "dayMaster": "己",
+      "dayMasterWuxing": "土",
+      "wuxing": "{\"木\":1,\"火\":2.5,\"土\":5.5,\"金\":3,\"水\":1}",
+      "shishen": "{\"day\":\"日主\",\"year\":\"比肩\",\"month\":\"正财\",\"hour\":\"比肩\"}",
+      "daYun": "[{\"sequence\":1,\"gan\":\"辛\",\"zhi\":\"申\",\"startAge\":10},{\"sequence\":2,\"gan\":\"庚\",\"zhi\":\"未\",\"startAge\":20},{\"sequence\":3,\"gan\":\"己\",\"zhi\":\"午\",\"startAge\":30},{\"sequence\":4,\"gan\":\"戊\",\"zhi\":\"巳\",\"startAge\":40},{\"sequence\":5,\"gan\":\"丁\",\"zhi\":\"辰\",\"startAge\":50},{\"sequence\":6,\"gan\":\"丙\",\"zhi\":\"卯\",\"startAge\":60},{\"sequence\":7,\"gan\":\"乙\",\"zhi\":\"寅\",\"startAge\":70},{\"sequence\":8,\"gan\":\"甲\",\"zhi\":\"丑\",\"startAge\":80}]",
+      "createdAt": "2026-06-25T03:10:25.416Z"
+    },
+    "9mfn5-9BSjwB": {
+      "id": "9mfn5-9BSjwB",
+      "userId": "RicYNOzYO1zr",
+      "yearGan": "己",
+      "yearZhi": "巳",
+      "monthGan": "壬",
+      "monthZhi": "酉",
+      "dayGan": "己",
+      "dayZhi": "未",
+      "hourGan": "辛",
+      "hourZhi": "未",
+      "dayMaster": "己",
+      "dayMasterWuxing": "土",
+      "wuxing": "{\"木\":1,\"火\":2.5,\"土\":5.5,\"金\":3,\"水\":1}",
+      "shishen": "{\"day\":\"日主\",\"year\":\"比肩\",\"month\":\"正财\",\"hour\":\"比肩\"}",
+      "daYun": "[{\"sequence\":1,\"gan\":\"辛\",\"zhi\":\"申\",\"startAge\":10},{\"sequence\":2,\"gan\":\"庚\",\"zhi\":\"未\",\"startAge\":20},{\"sequence\":3,\"gan\":\"己\",\"zhi\":\"午\",\"startAge\":30},{\"sequence\":4,\"gan\":\"戊\",\"zhi\":\"巳\",\"startAge\":40},{\"sequence\":5,\"gan\":\"丁\",\"zhi\":\"辰\",\"startAge\":50},{\"sequence\":6,\"gan\":\"丙\",\"zhi\":\"卯\",\"startAge\":60},{\"sequence\":7,\"gan\":\"乙\",\"zhi\":\"寅\",\"startAge\":70},{\"sequence\":8,\"gan\":\"甲\",\"zhi\":\"丑\",\"startAge\":80}]",
+      "createdAt": "2026-06-25T03:10:25.421Z"
+    },
+    "GOQJLLF7ynwH": {
+      "id": "GOQJLLF7ynwH",
+      "userId": "RicYNOzYO1zr",
+      "yearGan": "己",
+      "yearZhi": "巳",
+      "monthGan": "壬",
+      "monthZhi": "酉",
+      "dayGan": "己",
+      "dayZhi": "未",
+      "hourGan": "辛",
+      "hourZhi": "未",
+      "dayMaster": "己",
+      "dayMasterWuxing": "土",
+      "wuxing": "{\"木\":1,\"火\":2.5,\"土\":5.5,\"金\":3,\"水\":1}",
+      "shishen": "{\"day\":\"日主\",\"year\":\"比肩\",\"month\":\"正财\",\"hour\":\"比肩\"}",
+      "daYun": "[{\"sequence\":1,\"gan\":\"辛\",\"zhi\":\"申\",\"startAge\":10},{\"sequence\":2,\"gan\":\"庚\",\"zhi\":\"未\",\"startAge\":20},{\"sequence\":3,\"gan\":\"己\",\"zhi\":\"午\",\"startAge\":30},{\"sequence\":4,\"gan\":\"戊\",\"zhi\":\"巳\",\"startAge\":40},{\"sequence\":5,\"gan\":\"丁\",\"zhi\":\"辰\",\"startAge\":50},{\"sequence\":6,\"gan\":\"丙\",\"zhi\":\"卯\",\"startAge\":60},{\"sequence\":7,\"gan\":\"乙\",\"zhi\":\"寅\",\"startAge\":70},{\"sequence\":8,\"gan\":\"甲\",\"zhi\":\"丑\",\"startAge\":80}]",
+      "createdAt": "2026-06-25T06:00:16.635Z"
+    },
+    "lSSQqmPi6Fzb": {
+      "id": "lSSQqmPi6Fzb",
+      "userId": "RicYNOzYO1zr",
+      "yearGan": "己",
+      "yearZhi": "巳",
+      "monthGan": "壬",
+      "monthZhi": "酉",
+      "dayGan": "己",
+      "dayZhi": "未",
+      "hourGan": "辛",
+      "hourZhi": "未",
+      "dayMaster": "己",
+      "dayMasterWuxing": "土",
+      "wuxing": "{\"木\":1,\"火\":2.5,\"土\":5.5,\"金\":3,\"水\":1}",
+      "shishen": "{\"day\":\"日主\",\"year\":\"比肩\",\"month\":\"正财\",\"hour\":\"比肩\"}",
+      "daYun": "[{\"sequence\":1,\"gan\":\"辛\",\"zhi\":\"申\",\"startAge\":10},{\"sequence\":2,\"gan\":\"庚\",\"zhi\":\"未\",\"startAge\":20},{\"sequence\":3,\"gan\":\"己\",\"zhi\":\"午\",\"startAge\":30},{\"sequence\":4,\"gan\":\"戊\",\"zhi\":\"巳\",\"startAge\":40},{\"sequence\":5,\"gan\":\"丁\",\"zhi\":\"辰\",\"startAge\":50},{\"sequence\":6,\"gan\":\"丙\",\"zhi\":\"卯\",\"startAge\":60},{\"sequence\":7,\"gan\":\"乙\",\"zhi\":\"寅\",\"startAge\":70},{\"sequence\":8,\"gan\":\"甲\",\"zhi\":\"丑\",\"startAge\":80}]",
+      "createdAt": "2026-06-25T06:00:16.640Z"
+    },
+    "Ciq4yKEGfJr4": {
+      "id": "Ciq4yKEGfJr4",
+      "userId": "RicYNOzYO1zr",
+      "yearGan": "己",
+      "yearZhi": "巳",
+      "monthGan": "壬",
+      "monthZhi": "酉",
+      "dayGan": "己",
+      "dayZhi": "未",
+      "hourGan": "辛",
+      "hourZhi": "未",
+      "dayMaster": "己",
+      "dayMasterWuxing": "土",
+      "wuxing": "{\"木\":1,\"火\":2.5,\"土\":5.5,\"金\":3,\"水\":1}",
+      "shishen": "{\"day\":\"日主\",\"year\":\"比肩\",\"month\":\"正财\",\"hour\":\"比肩\"}",
+      "daYun": "[{\"sequence\":1,\"gan\":\"辛\",\"zhi\":\"申\",\"startAge\":10},{\"sequence\":2,\"gan\":\"庚\",\"zhi\":\"未\",\"startAge\":20},{\"sequence\":3,\"gan\":\"己\",\"zhi\":\"午\",\"startAge\":30},{\"sequence\":4,\"gan\":\"戊\",\"zhi\":\"巳\",\"startAge\":40},{\"sequence\":5,\"gan\":\"丁\",\"zhi\":\"辰\",\"startAge\":50},{\"sequence\":6,\"gan\":\"丙\",\"zhi\":\"卯\",\"startAge\":60},{\"sequence\":7,\"gan\":\"乙\",\"zhi\":\"寅\",\"startAge\":70},{\"sequence\":8,\"gan\":\"甲\",\"zhi\":\"丑\",\"startAge\":80}]",
+      "createdAt": "2026-06-25T06:05:56.093Z"
+    },
+    "K8s8GB9WISkP": {
+      "id": "K8s8GB9WISkP",
+      "userId": "RicYNOzYO1zr",
+      "yearGan": "己",
+      "yearZhi": "巳",
+      "monthGan": "壬",
+      "monthZhi": "酉",
+      "dayGan": "己",
+      "dayZhi": "未",
+      "hourGan": "辛",
+      "hourZhi": "未",
+      "dayMaster": "己",
+      "dayMasterWuxing": "土",
+      "wuxing": "{\"木\":1,\"火\":2.5,\"土\":5.5,\"金\":3,\"水\":1}",
+      "shishen": "{\"day\":\"日主\",\"year\":\"比肩\",\"month\":\"正财\",\"hour\":\"比肩\"}",
+      "daYun": "[{\"sequence\":1,\"gan\":\"辛\",\"zhi\":\"申\",\"startAge\":10},{\"sequence\":2,\"gan\":\"庚\",\"zhi\":\"未\",\"startAge\":20},{\"sequence\":3,\"gan\":\"己\",\"zhi\":\"午\",\"startAge\":30},{\"sequence\":4,\"gan\":\"戊\",\"zhi\":\"巳\",\"startAge\":40},{\"sequence\":5,\"gan\":\"丁\",\"zhi\":\"辰\",\"startAge\":50},{\"sequence\":6,\"gan\":\"丙\",\"zhi\":\"卯\",\"startAge\":60},{\"sequence\":7,\"gan\":\"乙\",\"zhi\":\"寅\",\"startAge\":70},{\"sequence\":8,\"gan\":\"甲\",\"zhi\":\"丑\",\"startAge\":80}]",
+      "createdAt": "2026-06-25T06:05:56.095Z"
     }
   },
   "constitutionResults": {
@@ -504,6 +612,13 @@
       "constitution": "平和质",
       "scores": "{\"平和质\":68,\"气虚质\":36,\"阳虚质\":0,\"阴虚质\":32,\"痰湿质\":50,\"湿热质\":43,\"血瘀质\":18,\"气郁质\":32,\"特禀质\":4}",
       "createdAt": "2026-06-24T06:35:39.283Z"
+    },
+    "eUvJIqJ71eNQ": {
+      "id": "eUvJIqJ71eNQ",
+      "userId": "RicYNOzYO1zr",
+      "constitution": "平和质",
+      "scores": "{\"平和质\":64,\"气虚质\":29,\"阳虚质\":0,\"阴虚质\":39,\"痰湿质\":64,\"湿热质\":39,\"血瘀质\":25,\"气郁质\":43,\"特禀质\":4}",
+      "createdAt": "2026-06-25T06:08:52.159Z"
     }
   },
   "familyMembers": {},
@@ -518,6 +633,17 @@
       "enableSearch": 1,
       "createdAt": "2026-06-24T07:13:28.329Z",
       "updatedAt": "2026-06-25T02:23:22.152Z"
+    }
+  },
+  "chatSessions": {
+    "LUlhxC9Eo8ci": {
+      "id": "LUlhxC9Eo8ci",
+      "userId": "RicYNOzYO1zr",
+      "title": "帮我分析一下我的八字五行",
+      "messages": "[{\"id\":\"1782362890408\",\"role\":\"user\",\"content\":\"帮我分析一下我的八字五行\",\"timestamp\":\"2026-06-25T04:48:10.408Z\"},{\"id\":\"1782362890409\",\"role\":\"assistant\",\"content\":\"翔宇小友，见字如晤。今日恰逢夏至交节，一阴初萌，阳气达于鼎盛。老朽玄明，且为你排布命盘，参合今日天时，细细道来。\\n\\n### 🌿 八字五行与日主总论\\n你的四柱为：**己巳（年） 壬酉（月） 己未（日） 辛未（时）**，日主为**己土**。\\n己土如田园之壤，性质厚重柔顺，主包容、务实、善养人。观你五行分布：土势最旺（5.5），金亦不弱（3），火居次（2.5），水木相对偏弱（水1、木1）。此局呈“**土重金埋、身旺偏实**”之象。己土虽能生金，但土过重则气机壅滞，故命理上最喜**水木**：木为官杀，可疏土理气、立规矩；水为财星，能润土养木、泄金之秀。八字水木为用，逢水木流年或大运，多主事业有章法、心境得舒展。\\n\\n### 🍃 体质与命理呼应\\n命理与中医本出同源。己土对应脾胃，土旺则脾运易滞。观你体质虽以“平和质”为底基，但**痰湿质（50分）、气虚质（36分）、湿热质（43分）**提示明显，正应《黄帝内经》“脾主运化，土旺则湿生”之理：\\n- 土重脾困，气机不运，故见气虚乏力、易倦；\\n- 湿聚不化，酿为痰湿，则身重困倦、口黏或便溏；\\n- 夏至火旺，土中蕴热，易成湿热之象，多见皮肤油腻或小便微黄。\\n老朽常说：“有诸内必形诸外。”你只需在日常中稍作疏导，脾胃一转，平和之底自会彰显。\\n\\n### ☀️ 今日天时与你命局的契合\\n今日干支为**丙午年 癸巳月 甲子日**，恰逢**夏至**节气。\\n- **甲子日**：甲木正官透干，子水偏财扎根。甲木如春藤破土，正应你命局“喜木疏土”之需；子水如甘霖润壤，恰补你八字水弱之憾。今日水木生扶，于你而言是**梳理规划、疏通经络、静养心神**的吉日。\\n- **夏至时令**：阳气最盛，宜“使气得泄，无厌于日”，切忌大汗暴烈或贪凉饮冷，以防心火过亢、耗伤气阴。\\n- **当地天气**：27℃、湿度62%，夏末湿热暗伏。湿热交蒸最易困脾，需防外湿引动内湿。\\n\\n### 📜 趋吉避凶与每日实务建议\\n结合今日宜忌（宜祭祀祈福、忌嫁娶开市交易）与你体质，老朽赠你四策：\\n\\n1. **食养清补，健脾化湿**  \\n   ✅ 宜：绿豆汤、莲子百合羹、冬瓜薏米粥。可酌加少许陈皮或砂仁，醒脾理气而不伤正。  \\n   ❌ 慎：辛辣炙烤、羊肉狗肉等辛热助火之物；冰镇冷饮恐伤脾阳，反致水湿内停。\\n\\n2. **穴位疏浚，引火归元**  \\n   今日宜重点按揉：  \\n   🔹 **涌泉**（足底前1/3凹陷处）：引上越之虚火下行，每侧3分钟。  \\n   🔹 **太溪**（内踝后方与跟腱之间）：滋水涵木，助甲子日水气养肝脾。  \\n   🔹 **神门**（腕横纹尺侧端）：宁心安神，夏至养心正合此时。  \\n   若觉四肢困重，可加按**足三里**（膝眼下三寸）健运脾土。\\n\\n3. **起居调摄，顺应天时**  \\n   午时（11-13点）宜小憩养心，夜卧早起。湿度较高，空调勿直吹颈背与腹部；可备淡竹叶或炒大麦泡水代茶，微苦甘淡，清热利湿不伤胃。\\n\\n4. **行事择机，借势而行**  \\n   今日黄历忌“开市交易”，老朽解作：不宜冲动签约、大额投资或与人争执口舌。但甲木正官得地，正利**文书审阅、学习进修、与长辈或上级沟通**。可借此日理清手头项目脉络，宜静思多谋，忌浮躁冒进。\\n\\n### 🌾 老朽寄语\\n《黄帝内经》云：“夏三月，此谓蕃秀，天地气交，万物华实。”《周易》曰：“地势坤，君子以厚德载物。”你己土之性，本具厚德；今逢甲子水木天时，正是“疏土引泉、养木成林”之时。养生如理水，疏胜于堵；命理如观星，顺势者昌。\\n\\n若平日确有神疲纳差、夜寐多梦、或大便黏滞难解等症，老朽仍劝你至正规中医院脾胃科或治未病科辨证调理，切莫仅凭单方自医。老朽在此祝你：心静如子水，志坚如甲木，顺天应时，岁岁安康。若有闲情，可随时再来闲话家常。福生无量。\",\"timestamp\":\"2026-06-25T04:51:51.250Z\",\"thinkingContent\":\"Here's a thinking process:\\n\\n1.  **Analyze User Input:**\\n   - **User:** 杨翔宇 (Male)\\n   - **Birth Date:** Lunar July 7, 1989, 13:00\\n   - **Birth Place:** Xi'an\\n   - **Bazi Provided:** 己巳 (Year) 壬酉 (Month) 己未 (Day) 辛未 (Hour)\\n   - **Day Master:** 己土 (Ji Earth)\\n   - **Five Elements Counts (provided):** Wood:1, Fire:2.5, Earth:5.5, Metal:3, Water:1\\n   - **TCM Constitution:** Primarily Balanced (平和质), with notable Qi Deficiency (气虚质:36), Phlegm-Dampness (痰湿质:50), Damp-Heat (湿热质:43), Yin Deficiency (阴虚质:32).\\n   - **Today's Date/Info:** June 25, 2026 (Gregorian), Bing Wu (丙午) Year, Gui Si (癸巳) Month, Jia Zi (甲子) Day. Solar term: Summer Solstice (夏至). Season: Summer. Element in command: Fire. Weather: Partly Cloudy, 27°C, 62% humidity, WSW 13km/h in Dizhai.\\n   - **User Question:** \\\"帮我分析一下我的八字五行\\\" (Help me analyze my Bazi and Five Elements)\\n\\n2.  **Identify Key Constraints & Requirements:**\\n   - Role: Master Xuanming Zhenren (玄明真人), wise, gentle, uses metaphors/allusions, combines TCM &命理, cites classics, practical advice, encourages good fortune/avoidance, reminds to see a doctor for health.\\n   - Must integrate today's info (date, solar term, weather, elements,宜忌).\\n   - Must address user's Bazi/Day Master/Elements/Constitution.\\n   - Daily analysis requirements: solar term advice, today's pillars vs user Bazi, weather tips, 宜忌 advice, all tailored to user.\\n   - Tone: Peaceful,亲切, professional yet accessible.\\n\\n3.  **Deconstruct User's Bazi & Five Elements:**\\n   - **Four Pillars:** 己巳 (Year) | 壬酉 (Month) | 己未 (Day) | 辛未 (Hour)\\n   - **Day Master:** 己土 (Ji Earth) - represents the user. Ji Earth is like garden soil, nurturing, flexible, adaptable, but can be prone to stagnation if too damp/heavy.\\n   - **Five Elements Distribution:** Earth is very strong (5.5), Metal is strong (3), Fire is moderate (2.5), Water is weak (1), Wood is weak (1). This indicates a chart dominated by Earth and Metal, with Fire supporting Earth. Water and Wood are relatively weak. This is a \\\"身旺\\\" (Strong Day Master) chart.\\n   - **Useful Gods (用神):** For a strong Ji Earth born in You month (Autumn, Metal season), Earth is heavy. Needs Wood to control Earth, Water to nourish Wood and wash Metal, and possibly Fire to warm/transform, but Fire already supports Earth, so it's mixed. Actually, for strong Earth, Wood (官杀) is best to dredge, Water (财) to nourish Wood and balance dryness, Metal (食伤) is already strong, so it might drain but also produces Water. Let's stick to standard analysis: 土重需木疏，需水润。故喜水木，忌火土。金为次喜（泄秀），但原局金已不弱。\\n   - **TCM Connection:** Earth corresponds to Spleen/Stomach. Strong Earth often relates to Spleen Qi deficiency or dampness accumulation. Matches TCM constitution: 痰湿质(50), 气虚质(36), 湿热质(43). This perfectly aligns: 土旺生湿，脾虚不运则成痰湿。\\n\\n4.  **Integrate Today's Info (June 25, 2026):**\\n   - **Date/Pillars:** 丙午年 癸巳月 甲子日\\n   - **Solar Term:** 夏至 (Summer Solstice) - Yang energy peaks, Yin begins to grow. Heat is intense, heart fire (心火) tends to be high.\\n   - **Weather:** 27°C, 62% humidity, partly cloudy. Comfortable but humid. Matches summer solstice damp-heat tendency.\\n   - **Today's Elements vs User:** Today is 甲子日 (Jia Wood + Zi Water). Jia Wood is 正官 (Direct Officer) for Ji Earth, representing discipline, career, structure. Zi Water is 偏财 (Indirect Wealth), nourishing Wood and cooling Fire. This is highly favorable for the user, as his chart needs Water and Wood! It helps dredge heavy Earth and nourish weak Wood/Water.\\n   - **宜忌:** 宜祭祀、祈福、求嗣、开光。忌嫁娶、开市、交易。 (Note: Traditional almanac advice, I'll adapt it practically to mindset/activities rather than superstitious commands).\\n\\n5.  **Structure the Response:**\\n   - **Greeting & Tone:** Warm, master-like opening.\\n   - **Bazi & Five Elements Analysis:** Explain Day Master (己土), element distribution, strength, useful gods, and connect to TCM constitution.\\n   - **Today's Heavenly Time (天时) Integration:** Connect Summer Solstice, today's 甲子 day, weather, and how it interacts with his chart.\\n   - **Health & Lifestyle Advice:** Tailored to his constitution (平和/气虚/痰湿/湿热) and today's conditions. Dietary, acupoint, daily routine tips.\\n   - **Fortune & Daily Guidance:** Based on 宜忌 and today's pillars, give practical advice for career/interactions.\\n   - **Closing:** Encouragement, reminder to consult doctors if needed, traditional blessing.\\n   - **Quotes:** 《黄帝内经》, 《周易》, etc.\\n\\n   Draft Outline:\\n   - 开场：祥和问候，点明日天时机缘\\n   - 八字五行总论：己土日主，土重金埋，喜水木疏润\\n   - 体质与命理呼应：脾土偏旺，痰湿气虚为标，平和为基\\n   - 今日天时与运势：夏至甲子日，水木生扶，利疏导与规划\\n   - 养生实务：食疗、穴位、起居、避忌（结合今日温湿度与节气）\\n   - 趋吉避凶建议：结合今日宜忌，给出行动指南\\n   - 结语：引用经典，祝福就医提醒\\n\\n6.  **Draft Generation (Mental Refinement):**\\n   *(Greeting)* 翔宇小友，见字如晤。今日恰逢夏至交节，一阴初萌，阳气达于鼎盛。老朽玄明，且为你排布命盘，参合今日天时，细细道来。\\n\\n   *(Bazi Analysis)* 你的四柱乃：己巳、壬酉、己未、辛未。日主为**己土**，如田园之土，厚重包容，生养万物。观你五行分布，土势最旺（得两未、一己、一巳中戊土相助），金亦不弱（酉、辛透出），火土相生，故命局呈“土重金埋、身旺偏实”之象。己土本喜疏浚，土重则易滞，故命理上最喜**水木**：木为官杀，可疏土理气；水为财星，能润土养木、泄金之秀。此与你中年后行运若逢水木之地，多主事业稳步、心境通达。\\n\\n   *(TCM Connection)* 命理与中医本是一体。己土对应脾胃，土旺则脾运易壅滞。观你体质虽以“平和质”为底，但痰湿质（50分）、气虚质（36分）与湿热质（43分）提示明显：正是“土重生湿，脾虚不运”之征。气虚则乏力的，痰湿则困重、易生赘肉或口黏，湿热则易见皮肤油腻或小便微黄。老朽常说：“有诸内必形诸外”，你只需在日常中稍作调养，脾胃一转，平和之底自会彰显。\\n\\n   *(Today's Integration)* 今日甲子日，甲木正官透干，子水偏财扎根。甲木如春藤破土，正应你命局“喜木疏土”之需；子水如甘霖润壤，恰补你八字水弱之憾。今日天时水火既济、木气生发，于你而言是**梳理规划、疏通经络、静养心神**的吉日。今日节气夏至，阳气最盛，宜“无厌于日，使气得泄”，切忌大汗暴烈，以防心火过亢、耗伤气阴。\\n\\n   *(Weather & Daily Advice)* 今日西安（注：用户出生地西安，但实时城市显示Dizhai，暂按Dizhai或泛指当地气候）天气27℃、湿度62%，夏雨未至而湿热暗伏。老朽赠你四策：\\n   1. **食养**：宜绿豆汤、莲子百合羹、冬瓜薏米粥，清补不伤脾；慎食辛辣炙烤、冰镇冷饮，恐助湿热、困脾阳。\\n   2. **穴位**：每日按揉**涌泉**（引火归元）、**太溪**（滋水涵木）、**神门**（宁心安神），每穴3分钟，微酸胀为度。可配**足三里**健运脾土。\\n   3. **起居**：午时（11-13点）宜小憩养心，夜卧早起，顺应夏至“长夏养长”之律。湿度较高，空调勿直吹，可备淡竹叶或陈皮泡水代茶，理气化湿。\\n   4. **行事**：今日黄历宜祭祀祈福，忌嫁娶开市。老朽解作：宜静心内观、理清思路、做长远规划；不宜重大签约或冲动投资。甲木正官今日得地，正利文书、学习、与长辈或上级沟通，可顺势推进手头项目。\\n\\n   *(Quote & Closing)* 《黄帝内经》云：“夏三月，此谓蕃秀，天地气交，万物华实。”《周易》曰：“天行健，君子以自强不息；地势坤，君子以厚德载物。”你己土之性，本具厚德，今逢水木天时，正是“疏土引泉、养木成林”之时。养生如理水，疏胜于堵；命理如观星，顺势者昌。\\n\\n   若平日确有神疲纳差、便溏黏腻或夜寐不安等症，老朽仍劝你至正规中医院辨证调理。老朽在此祝你：心静如子水，志坚如甲木，顺天应时，岁岁安康。若有闲情，可随时再来闲话家常。福生无量。\\n\\n7.  **Self-Correction & Verification against Constraints:**\\n   - *Role/Tone:* Master Xuanming Zhenren, peaceful, wise, uses metaphors (田园之土, 春藤破土, 甘霖润壤, 养生如理水), cites classics (黄帝内经, 周易). Checks out.\\n   - *Bazi Analysis:* Addresses Day Master (己土), element distribution (土旺金相, 水火木弱), useful gods (喜水木, 忌火土), connects to constitution. Checks out.\\n   - *TCM Constitution:* Mentions 平和质 base, but highlights 痰湿(50), 气虚(36), 湿热(43), explains mechanism (土重生湿, 脾虚不运). Gives diet, acupoints, routine. Checks out.\\n   - *Today's Info:* Integrates 夏至, 丙午年癸巳月甲子日, 27°C/62% humidity, 宜忌. Explains how 甲子 day benefits 己土 (木疏土, 水润土). Gives tailored advice. Checks out.\\n   - *Daily Requirements:* \\n     1. Solar term advice: 夏至养长, 防心火, 静养避暑. ✓\\n     2. Today's pillars vs Bazi: 甲子日水木生扶, 补八字所缺. ✓\\n     3. Weather: 27°C/62%湿, 防湿热, 空调避直吹, 陈皮水. ✓\\n     4. 宜忌: 宜内观规划, 忌冲动交易, 结合正官日利文书沟通. ✓\\n     5. Combined with user info: Explicitly ties to 己土日主, 脾土体质, 痰湿气虚. ✓\\n   - *Medical Disclaimer:* Included (\\\"若平日确有...劝你至正规中医院辨证调理\\\"). ✓\\n   - *Formatting/Structure:* Clear, professional, flows naturally.\\n   - *Potential Issue:* The prompt says \\\"城市：Dizhai\\\", which might be a placeholder or specific location. I'll keep it general or mention local climate without overcommitting. I'll adjust slightly to \\\"今日当地天气...\\\" to be safe. Also, ensure the tone isn't too rigid. The draft looks solid.\\n\\n   One minor check: Bazi elements count provided by user: 木:1 火:2.5 土:5.5 金:3 水:1. This matches my analysis (Earth very strong, Metal strong, Fire moderate, Water/Wood weak). I'll explicitly reference these numbers to show I'm using their data.\\n   I will refine the draft to ensure all constraints are met precisely and the language is polished.\\n\\n   Structure in final output:\\n   - 问候与日天时机缘\\n   - 八字五行与日主解析（结合给出数据）\\n   - 体质与命理呼应\\n   - 今日天时（夏至+甲子日+天气）对你的具体影响\\n   - 养生与行事建议（食疗、穴位、起居、宜忌）\\n   - 经典引语与结语（含就医提醒）\\n   All aligned. Proceed. \\n   Output matches the refined draft. \\n   Self-Correction/Verification during thought:\\n   - Check Bazi: 己巳 壬酉 己未 辛未. Month is 酉 (Rooster), which is Autumn. But the prompt says current month is 癸巳 (Snake). This is a discrepancy because the user was born in 1989 (Year of Snake), but the current year is 2026 (Bing Wu). The prompt gives *current* monthly pillar as 癸巳, which is correct for June 2026. I will clarify that the Bazi analysis is for his *birth chart*, while today's influence is from the *current time*. I'll make this distinction clear so there's no confusion.\\n   - The prompt says \\\"当前月柱：癸巳（水）\\\" - actually 癸巳 month's element is Water/Fire, but it says (水). I'll just follow the prompt's data but focus on the core analysis.\\n   - I will ensure the tone is consistently \\\"玄明真人\\\".\\n   - All constraints met. Ready. \\n   Output Generation. \\n   *(Proceeds)*\",\"thinkingCollapsed\":true}]",
+      "lastMessage": "翔宇小友，见字如晤。今日恰逢夏至交节，一阴初萌，阳气达于鼎盛。老朽玄明，且为你排布命盘，参合今日天时，细细道来。\n\n### 🌿 八字五行与日主总论\n你的四柱为：**己巳（年） 壬酉（月） 己未（日） 辛未（时）**，日主为**己土**。\n己土如田园之壤，性质厚重柔顺，主包容、务实、善养人。观你五行分布：土势最旺（5.5），金亦不弱（3），火居次（2.5），水木相对偏弱（水1、木1）。此局呈“**土重金埋、身旺偏实**”之象。己土虽能生金，但土过重则气机壅滞，故命理上最喜**水木**：木为官杀，可疏土理气、立规矩；水为财星，能润土养木、泄金之秀。八字水木为用，逢水木流年或大运，多主事业有章法、心境得舒展。\n\n### 🍃 体质与命理呼应\n命理与中医本出同源。己土对应脾胃，土旺则脾运易滞。观你体质虽以“平和质”为底基，但**痰湿质（50分）、气虚质（36分）、湿热质（43分）**提示明显，正应《黄帝内经》“脾主运化，土旺则湿生”之理：\n- 土重脾困，气机不运，故见气虚乏力、易倦；\n- 湿聚不化，酿为痰湿，则身重困倦、口黏或便溏；\n- 夏至火旺，土中蕴热，易成湿热之象，多见皮肤油腻或小便微黄。\n老朽常说：“有诸内必形诸外。”你只需在日常中稍作疏导，脾胃一转，平和之底自会彰显。\n\n### ☀️ 今日天时与你命局的契合\n今日干支为**丙午年 癸巳月 甲子日**，恰逢**夏至**节气。\n- **甲子日**：甲木正官透干，子水偏财扎根。甲木如春藤破土，正应你命局“喜木疏土”之需；子水如甘霖润壤，恰补你八字水弱之憾。今日水木生扶，于你而言是**梳理规划、疏通经络、静养心神**的吉日。\n- **夏至时令**：阳气最盛，宜“使气得泄，无厌于日”，切忌大汗暴烈或贪凉饮冷，以防心火过亢、耗伤气阴。\n- **当地天气**：27℃、湿度62%，夏末湿热暗伏。湿热交蒸最易困脾，需防外湿引动内湿。\n\n### 📜 趋吉避凶与每日实务建议\n结合今日宜忌（宜祭祀祈福、忌嫁娶开市交易）与你体质，老朽赠你四策：\n\n1. **食养清补，健脾化湿**  \n   ✅ 宜：绿豆汤、莲子百合羹、冬瓜薏米粥。可酌加少许陈皮或砂仁，醒脾理气而不伤正。  \n   ❌ 慎：辛辣炙烤、羊肉狗肉等辛热助火之物；冰镇冷饮恐伤脾阳，反致水湿内停。\n\n2. **穴位疏浚，引火归元**  \n   今日宜重点按揉：  \n   🔹 **涌泉**（足底前1/3凹陷处）：引上越之虚火下行，每侧3分钟。  \n   🔹 **太溪**（内踝后方与跟腱之间）：滋水涵木，助甲子日水气养肝脾。  \n   🔹 **神门**（腕横纹尺侧端）：宁心安神，夏至养心正合此时。  \n   若觉四肢困重，可加按**足三里**（膝眼下三寸）健运脾土。\n\n3. **起居调摄，顺应天时**  \n   午时（11-13点）宜小憩养心，夜卧早起。湿度较高，空调勿直吹颈背与腹部；可备淡竹叶或炒大麦泡水代茶，微苦甘淡，清热利湿不伤胃。\n\n4. **行事择机，借势而行**  \n   今日黄历忌“开市交易”，老朽解作：不宜冲动签约、大额投资或与人争执口舌。但甲木正官得地，正利**文书审阅、学习进修、与长辈或上级沟通**。可借此日理清手头项目脉络，宜静思多谋，忌浮躁冒进。\n\n### 🌾 老朽寄语\n《黄帝内经》云：“夏三月，此谓蕃秀，天地气交，万物华实。”《周易》曰：“地势坤，君子以厚德载物。”你己土之性，本具厚德；今逢甲子水木天时，正是“疏土引泉、养木成林”之时。养生如理水，疏胜于堵；命理如观星，顺势者昌。\n\n若平日确有神疲纳差、夜寐多梦、或大便黏滞难解等症，老朽仍劝你至正规中医院脾胃科或治未病科辨证调理，切莫仅凭单方自医。老朽在此祝你：心静如子水，志坚如甲木，顺天应时，岁岁安康。若有闲情，可随时再来闲话家常。福生无量。",
+      "createdAt": "2026-06-25T04:51:51.273Z",
+      "updatedAt": "2026-06-25T04:51:51.273Z"
     }
   }
 }

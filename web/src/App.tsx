@@ -13,6 +13,7 @@ import { AcupointPage } from './pages/AcupointPage';
 import { FamilyPage } from './pages/FamilyPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ChatPage } from './pages/ChatPage';
+import { NewsDetailPage } from './pages/NewsDetailPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { useUserStore } from './stores/userStore';
@@ -54,6 +55,7 @@ export function App() {
           <Route path="family" element={<FamilyPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="chat" element={<ChatPage />} />
+          <Route path="news/:id" element={<NewsDetailPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

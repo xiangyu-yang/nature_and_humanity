@@ -77,6 +77,16 @@ export interface LLMConfig {
   updatedAt: string;
 }
 
+export interface ChatSession {
+  id: string;
+  userId: string;
+  title: string;
+  messages: string;
+  lastMessage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const UserDAO = {
   create: async (data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> => {
     const id = nanoid(12);
@@ -359,5 +369,72 @@ export const LLMConfigDAO = {
   delete: async (id: string): Promise<boolean> => {
     const result = await db.run('DELETE FROM llm_configs WHERE id = ?', [id]);
     return result.changes > 0;
+  }
+};
+
+export const ChatSessionDAO = {
+  create: async (data: Omit<ChatSession, 'id' | 'createdAt' | 'updatedAt'>): Promise<ChatSession> => {
+    const id = nanoid(12);
+    const now = new Date().toISOString();
+    await db.run(`
+      INSERT INTO chat_sessions (id, userId, title, messages, lastMessage, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [id, data.userId, data.title, data.messages, data.lastMessage, now, now]);
+    return { ...data, id, createdAt: now, updatedAt: now };
+  },
+
+  findById: async (id: string): Promise<ChatSession | undefined> => {
+    const row = await db.get('SELECT * FROM chat_sessions WHERE id = ?', [id]);
+    return row as ChatSession | undefined;
+  },
+
+  findByUserId: async (userId: string): Promise<ChatSession[]> => {
+    const rows = await db.all('SELECT * FROM chat_sessions WHERE userId = ? ORDER BY updatedAt DESC', [userId]);
+    return rows as ChatSession[];
+  },
+
+  update: async (id: string, data: Partial<Omit<ChatSession, 'id' | 'userId' | 'createdAt'>>): Promise<ChatSession | undefined> => {
+    const updatedAt = new Date().toISOString();
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (data.title !== undefined) { fields.push('title = ?'); values.push(data.title); }
+    if (data.messages !== undefined) { fields.push('messages = ?'); values.push(data.messages); }
+    if (data.lastMessage !== undefined) { fields.push('lastMessage = ?'); values.push(data.lastMessage); }
+    fields.push('updatedAt = ?');
+    values.push(updatedAt);
+    values.push(id);
+
+    if (fields.length === 0) return ChatSessionDAO.findById(id);
+
+    await db.run(`UPDATE chat_sessions SET ${fields.join(', ')} WHERE id = ?`, values);
+    return ChatSessionDAO.findById(id);
+  },
+
+  upsert: async (id: string | undefined, data: Omit<ChatSession, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }): Promise<ChatSession> => {
+    const existing = id ? await ChatSessionDAO.findById(id) : undefined;
+    if (existing) {
+      const updated = await ChatSessionDAO.update(id, {
+        title: data.title,
+        messages: data.messages,
+        lastMessage: data.lastMessage,
+      });
+      return updated!;
+    } else {
+      return await ChatSessionDAO.create(data);
+    }
+  },
+
+  delete: async (id: string): Promise<boolean> => {
+    const result = await db.run('DELETE FROM chat_sessions WHERE id = ?', [id]);
+    return result.changes > 0;
+  },
+
+  deleteByUserId: async (userId: string): Promise<number> => {
+    const sessions = await ChatSessionDAO.findByUserId(userId);
+    for (const session of sessions) {
+      await db.run('DELETE FROM chat_sessions WHERE id = ?', [session.id]);
+    }
+    return sessions.length;
   }
 };

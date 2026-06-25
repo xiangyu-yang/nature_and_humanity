@@ -9,6 +9,8 @@ export function ProfilePage() {
   const navigate = useNavigate();
   const user = useUserStore(s => s.user);
   const logout = useUserStore(s => s.logout);
+  const setConstitution = useUserStore(s => s.setConstitution);
+  const setBazi = useUserStore(s => s.setBazi);
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -33,6 +35,18 @@ export function ProfilePage() {
     ]).then(([profileResult, configResult]) => {
       setData(profileResult.data);
       setLlmConfig(configResult.data);
+      
+      if (profileResult.data.constitution) {
+        setConstitution({
+          primaryType: profileResult.data.constitution.primaryType,
+          secondaryType: profileResult.data.constitution.secondaryType || null,
+        });
+      }
+      
+      if (profileResult.data.bazi) {
+        setBazi(profileResult.data.bazi);
+      }
+      
       setLoading(false);
     }).catch(() => {
       setLoading(false);

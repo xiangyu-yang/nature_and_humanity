@@ -1,14 +1,26 @@
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Calendar, BookOpen, Sparkles, Stethoscope, FileText,
   Heart, Compass, Apple, Activity, Users, Settings,
-  ChevronRight, Sun, Moon, MessageCircle,
+  ChevronRight, Sun, Moon, MessageCircle, ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
 import { api, type DailyFortune } from '@/api/client';
 import { useUserStore } from '@/stores/userStore';
 import { formatDate, getScoreColor } from '@/utils';
 import { TaijiLogo, BaguaWheel } from '@/components/Branding';
+
+interface NewsArticle {
+  id: string;
+  title: string;
+  summary: string;
+  tag: string;
+  date: string;
+  source: string;
+  url?: string;
+  link?: string;
+}
 
 const quickEntries = [
   { path: '/birth', label: '生辰信息', icon: Calendar, desc: '开启命理之旅', color: 'from-teal-500 to-teal-700' },
@@ -21,23 +33,52 @@ const quickEntries = [
   { path: '/food', label: '食疗推荐', icon: Apple, desc: '体质食疗·节气', color: 'from-red-400 to-red-600' },
 ];
 
-const newsArticles = [
-  { title: '小满时节：清热利湿，养心健脾', summary: '小满者，物至于此小得盈满。中医认为此时阳气始盛，湿热渐起，宜食苦清热...', tag: '节气养生', date: '05-21' },
-  { title: '九种体质辨识：你是哪一种？', summary: '中医将人体分为九种体质：平和、气虚、阳虚、阴虚、痰湿、湿热、血瘀、气郁、特禀...', tag: '体质知识', date: '05-18' },
-  { title: '足三里：万能的保健要穴', summary: '足三里穴是足阳明胃经的合穴，被誉为"长寿第一穴"，能健脾和胃、扶正培元...', tag: '穴位保健', date: '05-15' },
-  { title: '五行与五脏：古老智慧的现代解读', summary: '木火土金水对应肝心脾肺肾，五行相生相克，维系着人体的动态平衡...', tag: '中医理论', date: '05-12' },
+const fallbackNewsArticles: NewsArticle[] = [
+  { id: 'fb-1', title: '小满时节：清热利湿，养心健脾', summary: '小满者，物至于此小得盈满。中医认为此时阳气始盛，湿热渐起，宜食苦清热...', tag: '节气养生', date: '05-21', source: '中医知识库' },
+  { id: 'fb-2', title: '九种体质辨识：你是哪一种？', summary: '中医将人体分为九种体质：平和、气虚、阳虚、阴虚、痰湿、湿热、血瘀、气郁、特禀...', tag: '体质知识', date: '05-18', source: '中医知识库' },
+  { id: 'fb-3', title: '足三里：万能的保健要穴', summary: '足三里穴是足阳明胃经的合穴，被誉为"长寿第一穴"，能健脾和胃、扶正培元...', tag: '穴位保健', date: '05-15', source: '中医知识库' },
+  { id: 'fb-4', title: '五行与五脏：古老智慧的现代解读', summary: '木火土金水对应肝心脾肺肾，五行相生相克，维系着人体的动态平衡...', tag: '中医理论', date: '05-12', source: '中医知识库' },
 ];
 
 export function HomePage() {
   const user = useUserStore(s => s.user);
+  const navigate = useNavigate();
   const [fortune, setFortune] = useState<DailyFortune | null>(null);
+  const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const refreshNews = async () => {
+    setRefreshing(true);
+    try {
+      const response = await fetch('/api/news/refresh', { method: 'POST' });
+      const result = await response.json();
+      if (result.code === 0 && result.data) {
+        setNews(result.data.slice(0, 8));
+      }
+    } catch (error) {
+      console.error('Refresh news failed:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    api.getTodayFortune(user?.id).then(d => {
-      setFortune(d.data);
+    Promise.all([
+      api.getTodayFortune(user?.id),
+      fetch('/api/news').then(res => res.json()).catch(() => ({ code: -1 })),
+    ]).then(([fortuneResult, newsResult]) => {
+      setFortune(fortuneResult.data);
+      if (newsResult.code === 0 && newsResult.data) {
+        setNews(newsResult.data.slice(0, 8));
+      } else {
+        setNews(fallbackNewsArticles);
+      }
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => {
+      setNews(fallbackNewsArticles);
+      setLoading(false);
+    });
   }, [user?.id]);
 
   return (
@@ -151,12 +192,28 @@ export function HomePage() {
 
       {/* 养生资讯 */}
       <section>
-        <SectionTitle title="养生资讯" subtitle="节气 · 体质 · 穴位" link="/wellness" linkText="更多内容" />
+        <div className="flex items-center justify-between mb-4">
+          <SectionTitle title="养生资讯" subtitle="节气 · 体质 · 穴位" />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={refreshNews}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-ink-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? '刷新中...' : '获取最新资讯'}</span>
+            </button>
+            <Link to="/wellness" className="text-sm text-ink-500 hover:text-teal-600 transition-colors">
+              更多内容 →
+            </Link>
+          </div>
+        </div>
         <div className="grid md:grid-cols-2 gap-4">
-          {newsArticles.map((article, idx) => (
+          {news.map((article) => (
             <article
-              key={idx}
-              className="card-paper p-5 flex gap-4 hover:shadow-ink-lg transition-shadow"
+              key={article.id}
+              className="card-paper p-5 flex gap-4 hover:shadow-ink-lg transition-shadow cursor-pointer"
+              onClick={() => navigate(`/news/${article.id}`)}
             >
               <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-teal-100 to-amber-100 grid place-items-center shrink-0">
                 <TaijiLogo size={48} className="opacity-70" />
@@ -165,8 +222,14 @@ export function HomePage() {
                 <div className="flex items-center gap-2 text-xs text-ink-400 mb-1.5">
                   <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded">{article.tag}</span>
                   <span>{article.date}</span>
+                  {article.source && (
+                    <span className="text-ink-300">· {article.source}</span>
+                  )}
                 </div>
-                <h3 className="font-medium text-ink-600 line-clamp-1 mb-1.5">{article.title}</h3>
+                <h3 className="font-medium text-ink-600 line-clamp-1 mb-1.5 flex items-center gap-1">
+                  {article.title}
+                  {article.link && <ExternalLink className="w-3.5 h-3.5 opacity-50 shrink-0" />}
+                </h3>
                 <p className="text-sm text-ink-400 line-clamp-2 leading-relaxed">{article.summary}</p>
               </div>
             </article>

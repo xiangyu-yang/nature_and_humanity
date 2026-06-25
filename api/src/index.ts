@@ -14,6 +14,7 @@ import { familyRouter } from './routes/family.js';
 import { profileRouter } from './routes/profile.js';
 import { wellnessRouter } from './routes/wellness.js';
 import { llmRouter } from './routes/llm.js';
+import { newsRouter } from './routes/news.js';
 import { initDatabase } from './db/sqlite.js';
 import fs from 'fs';
 
@@ -44,6 +45,7 @@ async function startServer() {
   app.use('/api/profile', profileRouter);
   app.use('/api/wellness', wellnessRouter);
   app.use('/api/llm', llmRouter);
+  app.use('/api/news', newsRouter);
 
   app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('[api error]', err);

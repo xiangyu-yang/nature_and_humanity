@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { LLMConfigDAO, UserDAO, BaziRecordDAO, ConstitutionResultDAO } from '../db/dao';
+import { LLMConfigDAO, UserDAO, BaziRecordDAO, ConstitutionResultDAO, ChatSessionDAO } from '../db/dao';
 import { getDailyInfo, getWeather } from '../utils/dailyAnalysis';
 
 export const llmRouter = Router();
@@ -405,6 +405,80 @@ llmRouter.get('/config/:userId', async (req, res) => {
     }
   } catch (e: any) {
     res.status(500).json({ code: 500, message: e.message || '获取配置失败' });
+  }
+});
+
+const sessionSchema = z.object({
+  userId: z.string(),
+  sessionId: z.string().optional(),
+  title: z.string().max(100).optional(),
+  messages: z.array(z.any()).optional(),
+  lastMessage: z.string().optional(),
+});
+
+llmRouter.get('/sessions/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const sessions = await ChatSessionDAO.findByUserId(userId);
+    
+    const result = sessions.map(s => ({
+      id: s.id,
+      title: s.title,
+      lastMessage: s.lastMessage,
+      timestamp: s.updatedAt,
+      messages: JSON.parse(s.messages || '[]'),
+    }));
+    
+    res.json({ code: 0, data: result });
+  } catch (e: any) {
+    res.status(500).json({ code: 500, message: e.message || '获取会话列表失败' });
+  }
+});
+
+llmRouter.post('/sessions', async (req, res) => {
+  const parse = sessionSchema.safeParse(req.body);
+  if (!parse.success) {
+    return res.status(400).json({ code: 400, message: '参数错误' });
+  }
+
+  try {
+    const { userId, sessionId, title, messages, lastMessage } = parse.data;
+    
+    const messagesStr = messages ? JSON.stringify(messages) : '[]';
+    
+    const session = await ChatSessionDAO.upsert(sessionId, {
+      userId,
+      title: title || '新会话',
+      messages: messagesStr,
+      lastMessage: lastMessage || '',
+    });
+    
+    res.json({
+      code: 0,
+      data: {
+        id: session.id,
+        title: session.title,
+        lastMessage: session.lastMessage,
+        timestamp: session.updatedAt,
+      },
+    });
+  } catch (e: any) {
+    res.status(500).json({ code: 500, message: e.message || '保存会话失败' });
+  }
+});
+
+llmRouter.delete('/sessions/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const success = await ChatSessionDAO.delete(sessionId);
+    
+    if (success) {
+      res.json({ code: 0, data: { success: true } });
+    } else {
+      res.status(404).json({ code: 404, message: '会话不存在' });
+    }
+  } catch (e: any) {
+    res.status(500).json({ code: 500, message: e.message || '删除会话失败' });
   }
 });
 
