@@ -33,3 +33,6 @@ pnpm-debug.log*
 
 web/dist/
 api/dist/
+
+api/data/*.json
+api/uploads/

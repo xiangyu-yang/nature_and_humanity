@@ -1,4 +1,4 @@
-import { db } from './sqlite';
+import { db, storeData, saveDatabase } from './sqlite';
 import { nanoid } from 'nanoid';
 
 export interface User {
@@ -497,5 +497,127 @@ export const KnowledgeBaseDAO = {
     for (const doc of docs) {
       await db.run('DELETE FROM knowledge_bases WHERE id = ?', [doc.id]);
     }
+  },
+};
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  tag: string;
+  date: string;
+  source: string;
+  url?: string;
+  imageUrl?: string;
+  externalLink?: string;
+  fetchedAt?: string;
+}
+
+export const NewsArticleDAO = {
+  getAll: async (limit?: number): Promise<NewsArticle[]> => {
+    const articles = Object.values(storeData.newsArticles || {}) as NewsArticle[];
+    articles.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return limit ? articles.slice(0, limit) : articles;
+  },
+
+  findById: async (id: string): Promise<NewsArticle | undefined> => {
+    return storeData.newsArticles?.[id] as NewsArticle | undefined;
+  },
+
+  findByUrl: async (url: string): Promise<NewsArticle | undefined> => {
+    const articles = Object.values(storeData.newsArticles || {}) as NewsArticle[];
+    return articles.find(a => a.url === url);
+  },
+
+  findByTitle: async (title: string): Promise<NewsArticle | undefined> => {
+    const normalizedTitle = title.replace(/\s+/g, '').toLowerCase();
+    const articles = Object.values(storeData.newsArticles || {}) as NewsArticle[];
+    return articles.find(a => a.title.replace(/\s+/g, '').toLowerCase() === normalizedTitle);
+  },
+
+  findBySource: async (source: string): Promise<NewsArticle | undefined> => {
+    const articles = Object.values(storeData.newsArticles || {}) as NewsArticle[];
+    return articles.find(a => a.source === source);
+  },
+
+  upsert: async (article: NewsArticle): Promise<NewsArticle> => {
+    const existingByUrl = article.url ? await NewsArticleDAO.findByUrl(article.url) : undefined;
+    const existingByTitle = article.title ? await NewsArticleDAO.findByTitle(article.title) : undefined;
+    const existingBySource = article.source ? await NewsArticleDAO.findBySource(article.source) : undefined;
+    
+    const existing = existingByUrl || existingByTitle || existingBySource;
+    if (existing) {
+      storeData.newsArticles[existing.id] = { ...existing, ...article };
+      saveDatabase();
+      return storeData.newsArticles[existing.id];
+    }
+    
+    const newArticle = { ...article, fetchedAt: article.fetchedAt || new Date().toISOString() };
+    storeData.newsArticles[article.id] = newArticle;
+    saveDatabase();
+    return newArticle;
+  },
+
+  upsertMany: async (articles: NewsArticle[]): Promise<number> => {
+    let count = 0;
+    for (const article of articles) {
+      const existingByUrl = article.url ? await NewsArticleDAO.findByUrl(article.url) : undefined;
+      const existingByTitle = article.title ? await NewsArticleDAO.findByTitle(article.title) : undefined;
+      const existingBySource = article.source ? await NewsArticleDAO.findBySource(article.source) : undefined;
+      
+      if (!existingByUrl && !existingByTitle && !existingBySource) {
+        const newArticle = { ...article, fetchedAt: new Date().toISOString() };
+        storeData.newsArticles[article.id] = newArticle;
+        count++;
+      }
+    }
+    if (count > 0) {
+      saveDatabase();
+    }
+    return count;
+  },
+
+  deleteById: async (id: string): Promise<boolean> => {
+    if (storeData.newsArticles[id]) {
+      delete storeData.newsArticles[id];
+      return true;
+    }
+    return false;
+  },
+
+  deleteOlderThan: async (date: Date): Promise<number> => {
+    let count = 0;
+    const articles = Object.entries(storeData.newsArticles || {}) as [string, NewsArticle][];
+    for (const [id, article] of articles) {
+      if (new Date(article.date) < date) {
+        delete storeData.newsArticles[id];
+        count++;
+      }
+    }
+    return count;
+  },
+
+  getCount: async (): Promise<number> => {
+    return Object.keys(storeData.newsArticles || {}).length;
+  },
+
+  pruneToMax: async (maxCount: number): Promise<number> => {
+    const articles = Object.values(storeData.newsArticles || {}) as NewsArticle[];
+    if (articles.length <= maxCount) return 0;
+    
+    articles.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const toDelete = articles.slice(0, articles.length - maxCount);
+    
+    let count = 0;
+    for (const article of toDelete) {
+      delete storeData.newsArticles[article.id];
+      count++;
+    }
+    
+    if (count > 0) {
+      saveDatabase();
+    }
+    return count;
   },
 };

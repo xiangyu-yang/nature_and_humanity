@@ -1,6 +1,12 @@
 import { Router } from 'express';
+import https from 'https';
+import { NewsArticleDAO } from '../db/dao.js';
+
+const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 export const newsRouter = Router();
+
+const MAX_STORED_ARTICLES = 100;
 
 interface NewsArticle {
   id: string;
@@ -324,6 +330,33 @@ let newsCache: NewsArticle[] = [];
 let lastFetchTime = 0;
 const CACHE_TTL = 30 * 60 * 1000;
 
+const HEALTH_RELEVANT_KEYWORDS = [
+  '养生', '中医', '保健', '食疗', '药膳', '穴位', '经络', '体质',
+  '节气', '调理', '健康', '养生方法', '养生知识', '养生保健', '养生食谱',
+  '艾灸', '刮痧', '推拿', '按摩', '拔罐', '八段锦', '太极拳', '五禽戏',
+  '黄帝内经', '本草纲目', '中药', '药膳', '食疗方', '保健方法',
+];
+
+const URL_BLACKLIST = [
+  'mp.weixin.qq.com',
+  'douyin.com',
+  'zhihu.com/question',
+  'baike.baidu.com',
+  'baidu.com/s?',
+  'sogou.com/link',
+  'iiyiyi.com',
+  'ie.sogou.com',
+  'csh.moe.edu.cn',
+  'hanyuguoxue.com',
+  'gushici.net',
+  'zidian.',
+];
+
+function isArticleRelevant(article: NewsArticle): boolean {
+  const text = (article.title + article.summary + article.tag).toLowerCase();
+  return HEALTH_RELEVANT_KEYWORDS.some(keyword => text.includes(keyword));
+}
+
 function scheduleDailyRefresh() {
   const now = new Date();
   const targetTime = new Date(now);
@@ -349,10 +382,145 @@ function scheduleDailyRefresh() {
 
 scheduleDailyRefresh();
 
+async function fetchFromBing(keyword: string, maxRetries = 2): Promise<NewsArticle[]> {
+  const userAgents = [
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15',
+  ];
+
+  for (let retry = 0; retry <= maxRetries; retry++) {
+    try {
+      const url = `https://www.bing.com/search?q=${encodeURIComponent(keyword + ' 养生知识')}&count=10`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Cache-Control': 'max-age=0',
+          'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+          'Sec-Ch-Ua-Mobile': '?0',
+          'Sec-Ch-Ua-Platform': '"macOS"',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        timeout: 10000,
+        redirect: 'follow',
+      } as any);
+      
+      if (!response.ok) {
+        if (response.status === 403 || response.status === 429) {
+          console.warn('[News] Bing blocked, retrying...', retry + 1);
+          await new Promise(resolve => setTimeout(resolve, 3000 * (retry + 1)));
+          continue;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const html = await response.text();
+      
+      const articles: NewsArticle[] = [];
+      
+      const itemRegex = /<li[^>]*class="b_algo"[^>]*>([\s\S]*?)<\/li>/g;
+      const titleRegex = /<h2[^>]*>[\s\S]*?<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h2>/;
+      const contentRegex = /<p[^>]*class="b_lineclamp2"[^>]*>([\s\S]*?)<\/p>/;
+      const sourceRegex = /<cite[^>]*>([^<]+)<\/cite>/;
+      
+      let match;
+      let index = 0;
+      
+      while ((match = itemRegex.exec(html)) !== null && index < 10) {
+        const itemHtml = match[1];
+        
+        const titleMatch = itemHtml.match(titleRegex);
+        const contentMatch = itemHtml.match(contentRegex);
+        const sourceMatch = itemHtml.match(sourceRegex);
+        
+        if (titleMatch) {
+          const title = titleMatch[2].replace(/<[^>]+>/g, '').trim();
+          
+          if (title && title.length > 5) {
+            let articleUrl = titleMatch[1];
+            if (articleUrl.includes('bing.com/ck/a')) {
+              try {
+                const urlParams = new URLSearchParams(articleUrl.split('?')[1]);
+                articleUrl = urlParams.get('u') || articleUrl;
+                articleUrl = decodeURIComponent(articleUrl);
+              } catch {
+              }
+            }
+            
+            const article: NewsArticle = {
+              id: `bing-${Date.now()}-${index}`,
+              title: title.substring(0, 50),
+              summary: contentMatch ? contentMatch[1].replace(/<[^>]+>/g, '').trim().substring(0, 100) : '点击查看详情',
+              content: '',
+              tag: keyword,
+              date: new Date().toISOString().split('T')[0],
+              source: sourceMatch ? sourceMatch[1].trim() : '必应',
+              url: articleUrl.startsWith('http') ? articleUrl : `https://www.bing.com${articleUrl}`,
+            };
+            articles.push(article);
+            index++;
+          }
+        }
+      }
+      
+      return articles;
+    } catch (error) {
+      console.warn('[News] Bing fetch attempt', retry + 1, 'failed:', error);
+      if (retry < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 2000 * (retry + 1)));
+      }
+    }
+  }
+  
+  console.warn('[News] All Bing attempts failed for keyword:', keyword);
+  return [];
+}
+
+async function searchWithFallback(keyword: string): Promise<NewsArticle[]> {
+  const sogouResult = await fetchFromSogou(keyword, 1);
+  if (sogouResult.length > 0) {
+    return sogouResult;
+  }
+  
+  console.warn('[News] Sogou returned empty, trying Baidu for keyword:', keyword);
+  const baiduResult = await fetchFromBaidu(keyword, 1);
+  if (baiduResult.length > 0) {
+    return baiduResult;
+  }
+  
+  console.warn('[News] Baidu returned empty, trying Bing for keyword:', keyword);
+  const bingResult = await fetchFromBing(keyword, 1);
+  if (bingResult.length > 0) {
+    return bingResult;
+  }
+  
+  return [];
+}
+
 async function fetchRealNews(forceRefresh = false): Promise<NewsArticle[]> {
   const now = Date.now();
   if (!forceRefresh && newsCache.length > 0 && now - lastFetchTime < CACHE_TTL) {
     return newsCache;
+  }
+
+  if (!forceRefresh && newsCache.length === 0) {
+    const persistedArticles = await NewsArticleDAO.getAll(10);
+    if (persistedArticles.length > 0) {
+      console.log('[News] Loaded', persistedArticles.length, 'articles from database');
+      newsCache = persistedArticles;
+      lastFetchTime = now;
+      return newsCache;
+    }
   }
 
   try {
@@ -375,27 +543,43 @@ async function fetchRealNews(forceRefresh = false): Promise<NewsArticle[]> {
     const keywords = shuffled.slice(0, 4);
     
     const searchResults = await Promise.all(
-      keywords.map(keyword => fetchFromSogou(keyword))
+      keywords.map(keyword => searchWithFallback(keyword))
     );
     
     const candidateArticles: NewsArticle[] = [];
     const seenTitles = new Set<string>();
+    const seenUrls = new Set<string>();
+    const seenSources = new Set<string>();
     
     for (const articles of searchResults) {
       for (const article of articles) {
         const normalizedTitle = article.title.replace(/\s/g, '');
-        if (!seenTitles.has(normalizedTitle)) {
-          seenTitles.add(normalizedTitle);
-          
-          if (article.url?.includes('sogou.com/link')) continue;
-          if (article.url?.includes('iiyiyi.com')) continue;
-          if (article.url?.includes('mp.weixin.qq.com')) continue;
-          if (article.url?.includes('baidu.com/s?')) continue;
-          if (article.url?.includes('zhihu.com/question')) continue;
-          if (article.url?.includes('baike.baidu.com')) continue;
-          
-          candidateArticles.push(article);
+        
+        if (seenTitles.has(normalizedTitle)) {
+          console.warn('[News] Skipping duplicate title:', article.title.substring(0, 40));
+          continue;
         }
+        if (article.url && seenUrls.has(article.url)) {
+          console.warn('[News] Skipping duplicate url:', article.url.substring(0, 40));
+          continue;
+        }
+        if (article.source && seenSources.has(article.source)) {
+          console.warn('[News] Skipping duplicate source:', article.source.substring(0, 40));
+          continue;
+        }
+        
+        seenTitles.add(normalizedTitle);
+        if (article.url) seenUrls.add(article.url);
+        if (article.source) seenSources.add(article.source);
+        
+        if (URL_BLACKLIST.some(blacklist => article.url?.includes(blacklist))) continue;
+        
+        if (!isArticleRelevant(article)) {
+          console.warn('[News] Skipping irrelevant article:', article.title);
+          continue;
+        }
+        
+        candidateArticles.push(article);
       }
     }
     
@@ -427,16 +611,30 @@ async function fetchRealNews(forceRefresh = false): Promise<NewsArticle[]> {
         if (validatedArticles.length >= 8) break;
         
         const themeKeyword = theme.keywords[Math.floor(Math.random() * theme.keywords.length)];
-        const themeArticles = await fetchFromSogou(themeKeyword);
+        const themeArticles = await searchWithFallback(themeKeyword);
         
         for (const article of themeArticles) {
           if (validatedArticles.length >= 8) break;
           
           const normalizedTitle = article.title.replace(/\s/g, '');
-          if (seenTitles.has(normalizedTitle)) continue;
-          if (article.url?.includes('sogou.com/link')) continue;
+          if (seenTitles.has(normalizedTitle)) {
+            console.warn('[News] Skipping duplicate title (theme):', article.title.substring(0, 40));
+            continue;
+          }
+          if (article.url && seenUrls.has(article.url)) {
+            console.warn('[News] Skipping duplicate url (theme):', article.url.substring(0, 40));
+            continue;
+          }
+          if (article.source && seenSources.has(article.source)) {
+            console.warn('[News] Skipping duplicate source (theme):', article.source.substring(0, 40));
+            continue;
+          }
+          if (URL_BLACKLIST.some(blacklist => article.url?.includes(blacklist))) continue;
+          if (!isArticleRelevant(article)) continue;
           
           seenTitles.add(normalizedTitle);
+          if (article.url) seenUrls.add(article.url);
+          if (article.source) seenSources.add(article.source);
           
           try {
             const content = await fetchArticleContent(article.url || '', 1);
@@ -458,6 +656,17 @@ async function fetchRealNews(forceRefresh = false): Promise<NewsArticle[]> {
     
     newsCache = validatedArticles;
     lastFetchTime = now;
+    
+    if (validatedArticles.length > 0) {
+      const newCount = await NewsArticleDAO.upsertMany(validatedArticles);
+      console.log('[News] Persisted', newCount, 'new articles to database');
+      
+      const currentCount = await NewsArticleDAO.getCount();
+      if (currentCount > MAX_STORED_ARTICLES) {
+        const prunedCount = await NewsArticleDAO.pruneToMax(MAX_STORED_ARTICLES);
+        console.log('[News] Pruned', prunedCount, 'old articles to keep storage under', MAX_STORED_ARTICLES);
+      }
+    }
     
     return newsCache;
   } catch (error) {
@@ -498,6 +707,7 @@ async function fetchArticleContent(url: string, maxRetries = 2): Promise<string>
         },
         timeout: 15000,
         redirect: 'follow',
+        agent: url.startsWith('https') ? httpsAgent : undefined,
       } as any);
       
       if (!response.ok) {
@@ -583,132 +793,239 @@ async function fetchArticleContent(url: string, maxRetries = 2): Promise<string>
   return '';
 }
 
-async function fetchFromBaidu(keyword: string): Promise<NewsArticle[]> {
+async function resolveBaiduRedirect(baiduUrl: string): Promise<string> {
   try {
-    const url = `https://www.baidu.com/s?wd=${encodeURIComponent(keyword + ' 养生知识')}&rn=10`;
-    
-    const response = await fetch(url, {
+    const response = await fetch(baiduUrl, {
+      method: 'HEAD',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
-      timeout: 5000,
+      timeout: 8000,
+      redirect: 'follow',
+      agent: baiduUrl.startsWith('https') ? httpsAgent : undefined,
     } as any);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const html = await response.text();
-    
-    const articles: NewsArticle[] = [];
-    
-    const titleRegex = /<h3[^>]*class="c-title"[^>]*>[\s\S]*?<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h3>/g;
-    const contentRegex = /<span[^>]*class="c-content-right"[^>]*>([\s\S]*?)<\/span>/g;
-    const sourceRegex = /<span[^>]*class="c-color-gray"[^>]*>([^<]+)<\/span>/g;
-    
-    let match;
-    let index = 0;
-    const contents: string[] = [];
-    const sources: string[] = [];
-    
-    while ((match = contentRegex.exec(html)) !== null) {
-      contents.push(match[1].replace(/<[^>]+>/g, '').trim());
-    }
-    
-    while ((match = sourceRegex.exec(html)) !== null) {
-      sources.push(match[1].trim());
-    }
-    
-    while ((match = titleRegex.exec(html)) !== null && index < 10) {
-      const title = match[2].replace(/<[^>]+>/g, '').trim();
-      const url = match[1];
-      
-      if (title && title.length > 5) {
-        const article: NewsArticle = {
-          id: `baidu-${Date.now()}-${index}`,
-          title: title.substring(0, 50),
-          summary: contents[index] || '点击查看详情',
-          content: '',
-          tag: keyword,
-          date: new Date().toISOString().split('T')[0],
-          source: sources[index] || '百度',
-          url: url.startsWith('http') ? url : `https://www.baidu.com${url}`,
-        };
-        articles.push(article);
-        index++;
-      }
-    }
-    
-    return articles;
-  } catch (error) {
-    console.warn('[News] Baidu fetch failed:', error);
-    return [];
+    return response.url || baiduUrl;
+  } catch {
+    return baiduUrl;
   }
 }
 
-async function fetchFromSogou(keyword: string): Promise<NewsArticle[]> {
-  try {
-    const url = `https://www.sogou.com/web?query=${encodeURIComponent(keyword + ' 养生方法')}&num=10`;
-    
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-      },
-      timeout: 5000,
-    } as any);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const html = await response.text();
-    
-    const articles: NewsArticle[] = [];
-    
-    const itemRegex = /<div[^>]*class="vrwrap"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/g;
-    const titleRegex = /<h3[^>]*>[\s\S]*?<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h3>/;
-    const contentRegex = /<p[^>]*class="star-wiki"[^>]*>([\s\S]*?)<\/p>/;
-    const sourceRegex = /<cite[^>]*>([^<]+)<\/cite>/;
-    
-    let match;
-    let index = 0;
-    
-    while ((match = itemRegex.exec(html)) !== null && index < 10) {
-      const itemHtml = match[1];
+async function fetchFromBaidu(keyword: string, maxRetries = 2): Promise<NewsArticle[]> {
+  const userAgents = [
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
+  ];
+
+  for (let retry = 0; retry <= maxRetries; retry++) {
+    try {
+      const url = `https://www.baidu.com/s?wd=${encodeURIComponent(keyword + ' 养生知识')}&pn=0&rn=10&ie=utf-8`;
       
-      const titleMatch = itemHtml.match(titleRegex);
-      const contentMatch = itemHtml.match(contentRegex);
-      const sourceMatch = itemHtml.match(sourceRegex);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        },
+        timeout: 15000,
+        redirect: 'follow',
+        agent: url.startsWith('https') ? httpsAgent : undefined,
+      } as any);
       
-      if (titleMatch) {
-        const title = titleMatch[2].replace(/<[^>]+>/g, '').trim();
-        
-        if (title && title.length > 5) {
+      if (!response.ok) {
+        if (response.status === 403 || response.status === 429) {
+          console.warn('[News] Baidu blocked, retrying...', retry + 1);
+          await new Promise(resolve => setTimeout(resolve, 3000 * (retry + 1)));
+          continue;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      if (response.url.includes('wappass.baidu.com') || response.url.includes('captcha')) {
+        console.warn('[News] Baidu returned captcha page');
+        await new Promise(resolve => setTimeout(resolve, 3000 * (retry + 1)));
+        continue;
+      }
+      
+      const html = await response.text();
+      
+      const articles: NewsArticle[] = [];
+      
+      const resultPatterns = [
+        /<div[^>]*class="result"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi,
+        /<div[^>]*class="c-container"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi,
+        /<div[^>]*tpl="[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi,
+      ];
+      
+      let results: string[] = [];
+      for (const pattern of resultPatterns) {
+        let match;
+        while ((match = pattern.exec(html)) !== null) {
+          results.push(match[1]);
+        }
+        if (results.length > 0) break;
+      }
+      
+      let index = 0;
+      for (const resultHtml of results.slice(0, 10)) {
+        try {
+          const titleMatch = resultHtml.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+          if (!titleMatch) continue;
+          
+          const title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+          if (!title || title.length < 2) continue;
+          
+          const linkMatch = titleMatch[1].match(/<a[^>]*href="([^"]+)"[^>]*>/i);
+          if (!linkMatch) continue;
+          
+          let articleUrl = linkMatch[1];
+          if (!articleUrl.startsWith('http')) continue;
+          
+          if (articleUrl.includes('baidu.com/link')) {
+            articleUrl = await resolveBaiduRedirect(articleUrl);
+          }
+          
+          const summaryPatterns = [
+            /<div[^>]*class="c-abstract"[^>]*>([\s\S]*?)<\/div>/i,
+            /<p[^>]*class="op_exactqa_s_answer"[^>]*>([\s\S]*?)<\/p>/i,
+            /<span[^>]*class="content-right_8Zs40"[^>]*>([\s\S]*?)<\/span>/i,
+            /<div[^>]*class="result-op"[^>]*>([\s\S]*?)<\/div>/i,
+            /<span[^>]*class="newTimeFactor_before_abs m"[^>]*>([\s\S]*?)<\/span>/i,
+            /<p[^>]*>([\s\S]*?)<\/p>/i,
+          ];
+          
+          let summary = '';
+          for (const pattern of summaryPatterns) {
+            const summaryMatch = resultHtml.match(pattern);
+            if (summaryMatch) {
+              summary = summaryMatch[1].replace(/<[^>]+>/g, '').trim();
+              break;
+            }
+          }
+          
           const article: NewsArticle = {
-            id: `sogou-${Date.now()}-${index}`,
+            id: `baidu-${Date.now()}-${index}`,
             title: title.substring(0, 50),
-            summary: contentMatch ? contentMatch[1].replace(/<[^>]+>/g, '').trim().substring(0, 100) : '点击查看详情',
+            summary: summary || '点击查看详情',
             content: '',
             tag: keyword,
             date: new Date().toISOString().split('T')[0],
-            source: sourceMatch ? sourceMatch[1].trim() : '搜狗',
-            url: titleMatch[1].startsWith('http') ? titleMatch[1] : `https://www.sogou.com${titleMatch[1]}`,
+            source: '百度',
+            url: articleUrl,
           };
           articles.push(article);
           index++;
+        } catch (e) {
+          continue;
         }
       }
+      
+      return articles;
+    } catch (error) {
+      console.warn('[News] Baidu fetch attempt', retry + 1, 'failed:', error);
+      if (retry < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 2000 * (retry + 1)));
+      }
     }
-    
-    return articles;
-  } catch (error) {
-    console.warn('[News] Sogou fetch failed:', error);
-    return [];
   }
+  
+  console.warn('[News] All Baidu attempts failed for keyword:', keyword);
+  return [];
+}
+
+async function fetchFromSogou(keyword: string, maxRetries = 2): Promise<NewsArticle[]> {
+  const userAgents = [
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15',
+  ];
+
+  for (let retry = 0; retry <= maxRetries; retry++) {
+    try {
+      const url = `https://www.sogou.com/web?query=${encodeURIComponent(keyword + ' 养生方法')}&num=10`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Cache-Control': 'max-age=0',
+          'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+          'Sec-Ch-Ua-Mobile': '?0',
+          'Sec-Ch-Ua-Platform': '"macOS"',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        timeout: 10000,
+        redirect: 'follow',
+      } as any);
+      
+      if (!response.ok) {
+        if (response.status === 403 || response.status === 429) {
+          console.warn('[News] Sogou blocked, retrying...', retry + 1);
+          await new Promise(resolve => setTimeout(resolve, 3000 * (retry + 1)));
+          continue;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const html = await response.text();
+      
+      const articles: NewsArticle[] = [];
+      
+      const itemRegex = /<div[^>]*class="vrwrap"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/g;
+      const titleRegex = /<h3[^>]*>[\s\S]*?<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h3>/;
+      const contentRegex = /<p[^>]*class="star-wiki"[^>]*>([\s\S]*?)<\/p>/;
+      const sourceRegex = /<cite[^>]*>([^<]+)<\/cite>/;
+      
+      let match;
+      let index = 0;
+      
+      while ((match = itemRegex.exec(html)) !== null && index < 10) {
+        const itemHtml = match[1];
+        
+        const titleMatch = itemHtml.match(titleRegex);
+        const contentMatch = itemHtml.match(contentRegex);
+        const sourceMatch = itemHtml.match(sourceRegex);
+        
+        if (titleMatch) {
+          const title = titleMatch[2].replace(/<[^>]+>/g, '').trim();
+          
+          if (title && title.length > 5) {
+            const article: NewsArticle = {
+              id: `sogou-${Date.now()}-${index}`,
+              title: title.substring(0, 50),
+              summary: contentMatch ? contentMatch[1].replace(/<[^>]+>/g, '').trim().substring(0, 100) : '点击查看详情',
+              content: '',
+              tag: keyword,
+              date: new Date().toISOString().split('T')[0],
+              source: sourceMatch ? sourceMatch[1].trim() : '搜狗',
+              url: titleMatch[1].startsWith('http') ? titleMatch[1] : `https://www.sogou.com${titleMatch[1]}`,
+            };
+            articles.push(article);
+            index++;
+          }
+        }
+      }
+      
+      return articles;
+    } catch (error) {
+      console.warn('[News] Sogou fetch attempt', retry + 1, 'failed:', error);
+      if (retry < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 2000 * (retry + 1)));
+      }
+    }
+  }
+  
+  console.warn('[News] All Sogou attempts failed for keyword:', keyword);
+  return [];
 }
 
 newsRouter.get('/', async (_req, res) => {

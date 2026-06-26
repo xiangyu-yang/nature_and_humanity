@@ -14,6 +14,7 @@ interface StoreData {
   llmConfigs: Record<string, any>;
   chatSessions: Record<string, any>;
   knowledgeBases: Record<string, any>;
+  newsArticles: Record<string, any>;
 }
 
 let storeData: StoreData = {
@@ -25,6 +26,7 @@ let storeData: StoreData = {
   llmConfigs: {},
   chatSessions: {},
   knowledgeBases: {},
+  newsArticles: {},
 };
 
 const tableNameMap: Record<string, keyof StoreData> = {
@@ -44,6 +46,8 @@ const tableNameMap: Record<string, keyof StoreData> = {
   'chat_sessions': 'chatSessions',
   'knowledge_base': 'knowledgeBases',
   'knowledge_bases': 'knowledgeBases',
+  'news_article': 'newsArticles',
+  'news_articles': 'newsArticles',
 };
 
 export function initDatabase() {
@@ -67,8 +71,9 @@ export function initDatabase() {
         llmConfigs: loaded.llmConfigs || {},
         chatSessions: loaded.chatSessions || {},
         knowledgeBases: loaded.knowledgeBases || {},
+        newsArticles: loaded.newsArticles || {},
       };
-      console.log('[DB] Loaded existing database with', Object.keys(storeData.users).length, 'users');
+      console.log('[DB] Loaded existing database with', Object.keys(storeData.users).length, 'users,', Object.keys(storeData.newsArticles).length, 'news articles');
     } catch (err) {
       console.error('[DB] Failed to load database:', err);
       storeData = {
@@ -79,12 +84,14 @@ export function initDatabase() {
         favorites: {},
         llmConfigs: {},
         chatSessions: {},
+        knowledgeBases: {},
+        newsArticles: {},
       };
     }
   }
 }
 
-function saveDatabase() {
+export function saveDatabase() {
   try {
     if (!fs.existsSync(DB_DIR)) {
       fs.mkdirSync(DB_DIR, { recursive: true });
