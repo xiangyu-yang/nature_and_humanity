@@ -129,26 +129,20 @@ function getYearPillar(year: number, month: number, day: number): Pillar {
 }
 
 function getMonthPillar(year: number, month: number, day: number): Pillar {
-  // 节气月：立春开始为寅月
-  const jieqiMonths = [2, 4, 6, 8, 10, 12, 2]; // [立春, 惊蛰, 清明, 立夏, 芒种, 小暑, 立秋...]
-  // 简化：根据阳历月份确定月柱地支
-  // 子月(11)丑月(12)寅月(1)卯月(2)辰月(3)巳月(4)午月(5)未月(6)申月(7)酉月(8)戌月(9)亥月(10)
-  // 按节气校正：以立春（2/4）作为寅月开始
   let m = month;
-  if (month === 1 || (month === 2 && day < 4)) m = 12; // 丑月
-  else if (month === 2 || (month === 3 && day < 5)) m = 1; // 寅月
-  else if (month === 3 || (month === 4 && day < 5)) m = 2; // 卯月
-  else if (month === 4 || (month === 5 && day < 5)) m = 3; // 辰月
-  else if (month === 5 || (month === 6 && day < 6)) m = 4; // 巳月
-  else if (month === 6 || (month === 7 && day < 7)) m = 5; // 午月
-  else if (month === 7 || (month === 8 && day < 7)) m = 6; // 未月
-  else if (month === 8 || (month === 9 && day < 7)) m = 7; // 申月
-  else if (month === 9 || (month === 10 && day < 8)) m = 8; // 酉月
-  else if (month === 10 || (month === 11 && day < 7)) m = 9; // 戌月
-  else if (month === 11 || (month === 12 && day < 7)) m = 10; // 亥月
-  else m = 11; // 子月
+  if (month === 1 || (month === 2 && day < 4)) m = 12;
+  else if (month === 2 || (month === 3 && day < 5)) m = 1;
+  else if (month === 3 || (month === 4 && day < 5)) m = 2;
+  else if (month === 4 || (month === 5 && day < 5)) m = 3;
+  else if (month === 5 || (month === 6 && day < 6)) m = 4;
+  else if (month === 6 || (month === 7 && day < 7)) m = 5;
+  else if (month === 7 || (month === 8 && day < 7)) m = 6;
+  else if (month === 8 || (month === 9 && day < 7)) m = 7;
+  else if (month === 9 || (month === 10 && day < 8)) m = 8;
+  else if (month === 10 || (month === 11 && day < 7)) m = 9;
+  else if (month === 11 || (month === 12 && day < 7)) m = 10;
+  else m = 11;
 
-  // 五虎遁：甲己之年丙作首
   const y = year;
   const yearGan = TIANGAN[(y - 4) % 10];
   const startGanMap: Record<string, number> = {
@@ -160,17 +154,16 @@ function getMonthPillar(year: number, month: number, day: number): Pillar {
   };
   const startGan = startGanMap[yearGan];
   const ganIdx = (startGan + m - 1) % 10;
-  const zhiIdx = (2 + m) % 12; // 寅为2
+  const zhiIdx = (m + 1) % 12;
   return buildPillar(TIANGAN[ganIdx], DIZHI[zhiIdx]);
 }
 
 function getDayPillar(year: number, month: number, day: number): Pillar {
-  // 计算与基准日（1900-01-31 甲辰日）的天数差
-  const baseDate = new Date(1900, 0, 31);
-  const target = new Date(year, month - 1, day);
+  const baseDate = new Date(Date.UTC(1900, 0, 1));
+  const target = new Date(Date.UTC(year, month - 1, day));
   const diff = Math.floor((target.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
-  const ganIdx = ((diff % 10) + 10) % 10;
-  const zhiIdx = ((diff % 12) + 12) % 12;
+  const ganIdx = ((0 + diff) % 10 + 10) % 10;
+  const zhiIdx = ((10 + diff) % 12 + 12) % 12;
   return buildPillar(TIANGAN[ganIdx], DIZHI[zhiIdx]);
 }
 
